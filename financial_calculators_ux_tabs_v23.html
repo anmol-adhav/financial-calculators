@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Calculators Hub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --bg-light: #f8f9fa;
+        --bg-card: #ffffff;
+        --text-dark: #2d3748;
+        --text-light: #718096;
+        --border-color: #e2e8f0;
+        --range-thumb: #764ba2;
+        --insight-bg: #fffaf0;
+        --insight-text: #c05621;
+        --pin-bg: #f0fff4;
+        --tab-active-bg: #667eea;
+        --tab-active-text: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --bg-light: #1a202c;
+        --bg-card: #2d3748;
+        --text-dark: #f7fafc;
+        --text-light: #a0aec0;
+        --border-color: #4a5568;
+        --range-thumb: #9fa8da;
+        --insight-bg: #2c211b;
+        --insight-text: #fbd38d;
+        --pin-bg: #22543d;
+        --tab-active-bg: #764ba2;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg-light); color: var(--text-dark); padding-bottom: 120px; }
+
+    /* --- Header --- */
+    header {
+        background: var(--primary-gradient); color: white; text-align: center; padding: 40px 20px 100px;
+        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); margin-bottom: -40px;
+    }
+    header h1 { font-size: 2.2rem; margin-bottom: 5px; font-weight: 800; }
+
+    .stats-badge {
+        background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;
+        display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; backdrop-filter: blur(5px);
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* --- Tab Navigation (New UX) --- */
+    .tabs-container {
+        display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;
+        position: relative; z-index: 10;
+    }
+    .tab-btn {
+        padding: 12px 24px; background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 30px; cursor: pointer; font-weight: 600; color: var(--text-light);
+        transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .tab-btn:hover { transform: translateY(-2px); }
+    .tab-btn.active { background: var(--tab-active-bg); color: var(--tab-active-text); border-color: transparent; box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3); }
+
+    /* --- Category Sections --- */
+    .category-section { display: none; animation: fadeIn 0.4s ease-out; }
+    .category-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Cards --- */
+    .calculators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 25px; }
+    .calculator-card {
+        background: var(--bg-card); border-radius: 20px; padding: 30px; position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border-color);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .calculator-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+
+    /* Colored Top Borders */
+    .cat-invest .calculator-card { border-top: 4px solid #4299e1; }
+    .cat-loans .calculator-card { border-top: 4px solid #f56565; }
+    .cat-plan .calculator-card { border-top: 4px solid #48bb78; }
+    .cat-daily .calculator-card { border-top: 4px solid #ed8936; }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .card-header h2 { margin: 0; font-size: 1.3rem; font-weight: 700; }
+
+    /* --- Inputs & UI --- */
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-wrapper { display: flex; align-items: center; gap: 8px; }
+
+    .adj-btn {
+        width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color);
+        background: var(--bg-light); color: var(--text-dark); font-weight: bold; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; user-select: none; transition: 0.2s;
+    }
+    .adj-btn:hover { background: var(--border-color); }
+
+    .range-container { display: flex; flex-direction: column; gap: 5px; width: 100%; }
+    .range-input-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+    .range-input-row input[type="number"] {
+        flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; 
+        background: var(--bg-light); color: var(--text-dark); font-weight: 600; font-family: inherit;
+    }
+    input[type=range] { flex: 1; -webkit-appearance: none; background: transparent; cursor: pointer; height: 6px; }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%;
+        background: var(--range-thumb); margin-top: -6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s;
+    }
+    .input-std { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-weight: 600; }
+
+    .btn { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-light); margin-top: 10px; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+    .btn-secondary:hover { border-color: var(--primary-color); color: var(--primary-color); background: var(--bg-light); }
+
+    /* --- SMOOTH EXPANSION (The UX Fix) --- */
+    .result {
+        max-height: 0; opacity: 0; overflow: hidden; margin-top: 0; padding: 0 20px;
+        background: var(--bg-light); border-radius: 12px;
+        transition: max-height 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease-in-out, margin-top 0.4s;
+    }
+    .result.show {
+        max-height: 2000px; /* Arbitrary large height for slide */
+        opacity: 1; margin-top: 25px; padding: 20px;
+        border: 1px solid var(--border-color);
+    }
+
+    .result-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; }
+    .result-item:last-child { border-bottom: none; }
+    .highlight-val { color: var(--primary-color); font-weight: 800; font-size: 1.2rem; }
+
+    /* Toggle & Misc */
+    .toggle-container { display: flex; background: var(--bg-light); padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+    .toggle-btn { flex: 1; padding: 8px; text-align: center; cursor: pointer; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); transition: 0.2s; }
+    .toggle-btn.active { background: white; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    /* Pin Bar */
+    .pin-bar {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 600px;
+        background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 12px 25px;
+        z-index: 2000; display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .pin-bar.show { transform: translateX(-50%) translateY(0); }
+    .pin-content { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+    .close-pin { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display:flex;align-items:center;justify-content:center; font-weight:bold; }
+
+    /* Header Controls */
+    .controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+    .control-btn { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; color: white; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; font-size: 0.8rem; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+
+    /* History */
+    .history-wrap { position: relative; }
+    .history-menu { position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width: 220px; display: none; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 5px; }
+    .history-menu.show { display: block; }
+    .history-item { padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .history-item:hover { background: var(--bg-light); }
+
+    /* Tables & Charts */
+    .table-container { margin-top: 15px; max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+    .table-container.open { max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
+    .data-table th { background: var(--bg-light); padding: 10px; position: sticky; top: 0; font-weight:600; color:var(--text-light); }
+    .data-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
+    .chart-container { position: relative; height: 250px; width: 100%; margin-top: 20px; }
+
+    footer { text-align: center; color: var(--text-light); margin-top: 60px; font-size: 0.85rem; opacity: 0.7; }
+
+    @media (max-width: 768px) {
+        header { padding-bottom: 80px; }
+        .tabs-container { gap: 5px; overflow-x: auto; justify-content: flex-start; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .tab-btn { font-size: 0.9rem; padding: 8px 16px; white-space: nowrap; }
+        .controls { top: 10px; right: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    }
+</style>
+</head>
+<body onload="initPage()">
+
+<header>
+    <div class="controls">
+        <button class="control-btn" onclick="openBranding()">⚙️</button>
+        <button class="control-btn" onclick="toggleFormat()">IN/US</button>
+        <button class="control-btn" onclick="toggleTheme()">🌗</button>
+    </div>
+    <h1>Financial Calculators</h1>
+    <p>Professional Planning Suite</p>
+    <div class="stats-badge">👥 <span id="usage-stats">12,405</span> calculations today</div>
+</header>
+
+<div class="container">
+
+    <!-- Tabs UX -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('invest')">📈 Investments</button>
+        <button class="tab-btn" onclick="switchTab('loans')">🏠 Loans</button>
+        <button class="tab-btn" onclick="switchTab('plan')">🎯 Planning</button>
+        <button class="tab-btn" onclick="switchTab('daily')">🛠️ Daily</button>
+    </div>
+
+    <!-- INVESTMENTS -->
+    <div class="category-section cat-invest active" id="tab-invest">
+        <div class="calculators-grid">
+
+            <!-- SIP Calculator -->
+            <div class="calculator-card" id="card-sip">
+                <div class="card-header">
+                    <h2>SIP Planner</h2>
+                    <div class="header-actions">
+                        <div class="history-wrap"><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="toggleHistory('sip-hist')">🕒</button><div class="history-menu" id="sip-hist"></div></div>
+                        <button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('sip')">🧹</button>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <div class="toggle-btn active" id="sip-mode-std" onclick="toggleSIP('std')">Returns</div>
+                    <div class="toggle-btn" id="sip-mode-rev" onclick="toggleSIP('rev')">Goal</div>
+                </div>
+
+                <div id="sip-inputs-std">
+                    <div class="input-group">
+                        <label>Monthly Investment</label>
+                        <div class="input-wrapper">
+                            <button class="adj-btn" onclick="adjust('sip-amt', -500)">-</button>
+                            <div class="range-container"><div class="range-input-row"><input type="number" id="sip-amt" value="5000" oninput="sync('sip-amt','sip-amt-r'); saveInput('sip-amt'); calcSIP()"><input type="range" id="sip-amt-r" min="500" max="100000" step="500" value="5000" oninput="sync('sip-amt-r','sip-amt'); saveInput('sip-amt'); calcSIP()"></div></div>
+                            <button class="adj-btn" onclick="adjust('sip-amt', 500)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Annual Step-Up (%)</label>
+                        <div class="input-wrapper">
+                            <button class="adj-btn" onclick="adjust('sip-step', -1)">-</button>
+                            <input class="input-std" type="number" id="sip-step" value="0" min="0" max="100" oninput="saveInput('sip-step'); calcSIP()">
+                            <button class="adj-btn" onclick="adjust('sip-step', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sip-inputs-rev" style="display:none;">
+                    <div class="input-group"><label>Target Amount</label><input class="input-std" type="number" id="sip-target" value="1000000"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>Rate (%)</label>
+                    <div class="input-wrapper">
+                        <button class="adj-btn" onclick="adjust('sip-rate', -0.5)">-</button>
+                        <div class="range-container"><div class="range-input-row"><input type="number" id="sip-rate" value="12" oninput="sync('sip-rate','sip-rate-r'); saveInput('sip-rate'); calcSIP()"><input type="range" id="sip-rate-r" min="1" max="30" step="0.1" value="12" oninput="sync('sip-rate-r','sip-rate'); saveInput('sip-rate'); calcSIP()"></div></div>
+                        <button class="adj-btn" onclick="adjust('sip-rate', 0.5)">+</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Years</label>
+                    <div class="input-wrapper">
+                        <button class="adj-btn" onclick="adjust('sip-years', -1)">-</button>
+                        <div class="range-container"><div class="range-input-row"><input type="number" id="sip-years" value="10" oninput="sync('sip-years','sip-years-r'); saveInput('sip-years'); calcSIP()"><input type="range" id="sip-years-r" min="1" max="40" step="1" value="10" oninput="sync('sip-years-r','sip-years'); saveInput('sip-years'); calcSIP()"></div></div>
+                        <button class="adj-btn" onclick="adjust('sip-years', 1)">+</button>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="calcSIP()">Calculate</button>
+
+                <div style="margin-top:15px; display:flex; align-items:center; gap:10px; font-size:0.85rem; color:var(--text-light);">
+                    <input type="checkbox" id="sip-inf-tog" onchange="calcSIP()">
+                    <label for="sip-inf-tog">Adjust for Inflation (6%)</label>
+                </div>
+
+                <div class="result" id="res-sip">
+                    <div class="result-item">
+                        <span id="sip-lbl-1">Total Value</span>
+                        <div><span class="highlight-val" id="sip-val-1"></span> <span class="copy-icon" onclick="copyText('sip-val-1')">📋</span></div>
+                    </div>
+                    <div class="result-item"><span id="sip-lbl-2">Invested</span><span id="sip-val-2"></span></div>
+                    <div class="chart-container"><canvas id="chart-sip"></canvas></div>
+                    <div class="action-row" style="margin-top:15px; display:flex; gap:5px; flex-wrap:wrap;">
+                        <button class="btn-secondary" onclick="shareSummary('sip')">📤 Share</button>
+                        <button class="btn-secondary" onclick="pinResult('SIP', document.getElementById('sip-val-1').innerText)">📌 Pin</button>
+                        <button class="btn-secondary" onclick="downloadPDF('card-sip', 'SIP_Report')">📄 PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lump Sum -->
+            <div class="calculator-card" id="card-lump">
+                <div class="card-header"><h2>Lump Sum</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('lump')">🧹</button></div>
+                <div class="input-group"><label>Investment</label><input class="input-std" type="number" id="lump-amt" value="50000"></div>
+                <div class="input-group"><label>Rate (%)</label><input class="input-std" type="number" id="lump-rate" value="12"></div>
+                <div class="input-group"><label>Years</label><input class="input-std" type="number" id="lump-years" value="10"></div>
+                <button class="btn" onclick="calcLump()">Calculate</button>
+                <div class="result" id="res-lump">
+                    <div class="result-item"><span>Total Value</span><div><span class="highlight-val" id="lump-tot"></span> <span class="copy-icon" onclick="copyText('lump-tot')">📋</span></div></div>
+                    <div class="chart-container"><canvas id="chart-lump"></canvas></div>
+                </div>
+            </div>
+
+            <!-- PPF Calculator -->
+            <div class="calculator-card" id="card-ppf">
+                <div class="card-header"><h2>PPF Calculator</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('ppf')">🧹</button></div>
+                <div class="input-group"><label>Yearly Investment</label><input class="input-std" type="number" id="ppf-amt" value="150000"></div>
+                <div class="input-group"><label>Rate (%)</label><input class="input-std" type="number" id="ppf-rate" value="7.1"></div>
+                <button class="btn" onclick="calcPPF()">Calculate</button>
+                <div class="result" id="res-ppf">
+                    <div class="result-item"><span>Maturity</span><div><span class="highlight-val" id="ppf-val"></span> <span class="copy-icon" onclick="copyText('ppf-val')">📋</span></div></div>
+                    <div class="chart-container"><canvas id="chart-ppf"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOANS -->
+    <div class="category-section cat-loans" id="tab-loans">
+        <div class="calculators-grid">
+            <!-- EMI Calculator -->
+            <div class="calculator-card" id="card-emi">
+                <div class="card-header">
+                    <h2>EMI Calculator</h2>
+                    <div class="header-actions">
+                        <div class="history-wrap"><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="toggleHistory('emi-hist')">🕒</button><div class="history-menu" id="emi-hist"></div></div>
+                        <button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('emi')">🧹</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Loan Amount</label>
+                    <div class="input-wrapper">
+                        <button class="adj-btn" onclick="adjust('emi-amt', -50000)">-</button>
+                        <div class="range-container"><div class="range-input-row"><input type="number" id="emi-amt" value="1000000" oninput="sync('emi-amt','emi-amt-r'); saveInput('emi-amt'); calcEMI()"><input type="range" id="emi-amt-r" min="100000" max="10000000" step="50000" value="1000000" oninput="sync('emi-amt-r','emi-amt'); saveInput('emi-amt'); calcEMI()"></div></div>
+                        <button class="adj-btn" onclick="adjust('emi-amt', 50000)">+</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Rate (%)</label>
+                    <div class="input-wrapper">
+                        <button class="adj-btn" onclick="adjust('emi-rate', -0.25)">-</button>
+                        <div class="range-container"><div class="range-input-row"><input type="number" id="emi-rate" value="8.5" oninput="sync('emi-rate','emi-rate-r'); saveInput('emi-rate'); calcEMI()"><input type="range" id="emi-rate-r" min="5" max="20" step="0.1" value="8.5" oninput="sync('emi-rate-r','emi-rate'); saveInput('emi-rate'); calcEMI()"></div></div>
+                        <button class="adj-btn" onclick="adjust('emi-rate', 0.25)">+</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Years</label>
+                    <div class="input-wrapper">
+                        <button class="adj-btn" onclick="adjust('emi-years', -1)">-</button>
+                        <div class="range-container"><div class="range-input-row"><input type="number" id="emi-years" value="20" oninput="sync('emi-years','emi-years-r'); saveInput('emi-years'); calcEMI()"><input type="range" id="emi-years-r" min="1" max="30" step="1" value="20" oninput="sync('emi-years-r','emi-years'); saveInput('emi-years'); calcEMI()"></div></div>
+                        <button class="adj-btn" onclick="adjust('emi-years', 1)">+</button>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="calcEMI()">Calculate</button>
+
+                <div class="result" id="res-emi">
+                    <div class="result-item">
+                        <span>Monthly EMI</span>
+                        <div><span class="highlight-val" id="emi-val"></span> <span class="copy-icon" onclick="copyText('emi-val')">📋</span></div>
+                    </div>
+                    <div class="result-item"><span>Total Interest</span><span id="emi-int"></span></div>
+                    <div class="chart-container"><canvas id="chart-emi"></canvas></div>
+
+                    <div class="action-row" style="margin-top:15px; display:flex; gap:5px; flex-wrap:wrap;">
+                        <button class="btn-secondary" onclick="shareSummary('emi')">📤 Share</button>
+                        <button class="btn-secondary" onclick="pinResult('EMI', document.getElementById('emi-val').innerText)">📌 Pin</button>
+                        <button class="btn-secondary" onclick="toggleTable('emi-table-box')">📅 Table</button>
+                        <button class="btn-secondary" onclick="downloadCSV('emi-table', 'EMI_Schedule')">⬇️ CSV</button>
+                    </div>
+                    <div class="table-container" id="emi-table-box">
+                        <table class="data-table" id="emi-table"><thead><tr><th>Mo</th><th>Prin</th><th>Int</th><th>Bal</th></tr></thead><tbody id="emi-table-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Prepayment -->
+             <div class="calculator-card" id="card-prep">
+                <div class="card-header"><h2>Loan Prepayment</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('prep')">🧹</button></div>
+                <div class="input-group"><label>Loan Amount</label><input class="input-std" type="number" id="prep-loan" value="3000000"></div>
+                <div class="input-group"><label>Prepayment Amount</label><input class="input-std" type="number" id="prep-amt" value="500000"></div>
+                <button class="btn" onclick="calcPrep()">Calculate Savings</button>
+                <div class="result" id="res-prep">
+                    <div class="result-item"><span>Interest Saved</span><div><span class="highlight-val" id="prep-saved"></span> <span class="copy-icon" onclick="copyText('prep-saved')">📋</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="category-section cat-plan" id="tab-plan">
+        <div class="calculators-grid">
+            <!-- FIRE -->
+            <div class="calculator-card" id="card-fire">
+                <div class="card-header"><h2>FIRE Planner</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('fire')">🧹</button></div>
+
+                <div class="toggle-container">
+                    <div class="toggle-btn active" id="fire-mode-std" onclick="toggleFIRE('std')">Preserve</div>
+                    <div class="toggle-btn" id="fire-mode-draw" onclick="toggleFIRE('draw')">Drawdown</div>
+                </div>
+
+                <div class="input-group"><label>Current Annual Expenses</label><input class="input-std" type="number" id="fire-exp" value="600000"></div>
+                <div class="input-group" style="display:flex; gap:10px;">
+                    <div style="flex:1"><label>Current Age</label><input class="input-std" type="number" id="fire-age" value="30"></div>
+                    <div style="flex:1"><label>Retire Age</label><input class="input-std" type="number" id="fire-ret-age" value="50"></div>
+                </div>
+
+                <div id="fire-draw-inputs" style="display:none;">
+                    <div class="input-group"><label>Life Expectancy</label><input class="input-std" type="number" id="fire-life" value="90"></div>
+                </div>
+
+                <div class="input-group"><label>Current Portfolio</label><input class="input-std" type="number" id="fire-save" value="2000000"></div>
+                <div class="input-group"><label>Annual Savings</label><input class="input-std" type="number" id="fire-annual-save" value="500000"></div>
+                <div class="input-group" style="display:flex; gap:10px;">
+                    <div style="flex:1"><label>Return (%)</label><input class="input-std" type="number" id="fire-rate" value="10"></div>
+                    <div style="flex:1"><label>Inflation (%)</label><input class="input-std" type="number" id="fire-inf" value="6"></div>
+                </div>
+
+                <button class="btn" onclick="calcFIRE()">Calculate Freedom</button>
+
+                <div class="result" id="res-fire">
+                    <div style="text-align:center; margin-bottom:15px; font-size:1.1rem; font-weight:700; color:var(--primary-color);">Freedom In: <span id="fire-years"></span></div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">
+                        <div style="background:var(--bg-light); padding:8px; border-radius:8px; text-align:center;"><div style="font-size:0.7rem; color:var(--text-light)">COAST FIRE</div><div style="font-weight:700" id="fire-coast"></div></div>
+                        <div style="background:var(--bg-light); padding:8px; border-radius:8px; text-align:center;"><div style="font-size:0.7rem; color:var(--text-light)">TARGET</div><div style="font-weight:700" id="fire-num"></div></div>
+                    </div>
+
+                    <div class="chart-container"><canvas id="chart-fire"></canvas></div>
+
+                    <button class="btn-secondary" onclick="toggleTable('fire-table-box')" style="width:100%; margin-top:10px;">📅 Show Schedule</button>
+                    <div class="table-container" id="fire-table-box">
+                        <table class="data-table" id="fire-table"><thead><tr><th>Age</th><th>Balance</th><th>Withdraw</th></tr></thead><tbody id="fire-table-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="calculator-card" id="card-bud">
+                <div class="card-header"><h2>Budget (50/30/20)</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('bud')">🧹</button></div>
+                <div class="input-group"><label>Monthly Income</label><input class="input-std" type="number" id="bud-income" value="50000"></div>
+                <button class="btn" onclick="calcBudget()">Calculate</button>
+                <div class="result" id="res-bud">
+                    <div class="result-item"><span>Needs</span><span id="bud-needs"></span></div>
+                    <div class="result-item"><span>Wants</span><span id="bud-wants"></span></div>
+                    <div class="result-item"><span>Savings</span><span class="highlight-val" id="bud-save"></span></div>
+                    <div class="chart-container"><canvas id="chart-bud"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Retirement -->
+            <div class="calculator-card" id="card-ret">
+                <div class="card-header"><h2>Retirement</h2><button class="btn-secondary" style="margin:0;padding:5px 10px;" onclick="resetCalc('ret')">🧹</button></div>
+                <div class="input-group"><label>Current Age</label><input class="input-std" type="number" id="ret-age" value="30"></div>
+                <div class="input-group"><label>Expenses</label><input class="input-std" type="number" id="ret-exp" value="30000"></div>
+                <button class="btn" onclick="calcRet()">Calculate</button>
+                <div class="result" id="res-ret">
+                    <div class="result-item"><span>Corpus Needed</span><span class="highlight-val" id="ret-corpus"></span></div>
+                    <div class="chart-container"><canvas id="chart-ret"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY -->
+    <div class="category-section cat-daily" id="tab-daily">
+        <div class="calculators-grid">
+            <!-- Currency -->
+            <div class="calculator-card" id="card-curr">
+                <div class="card-header"><h2>Currency Converter</h2></div>
+                <div class="input-group"><label>Amount</label><input class="input-std" type="number" id="curr-amt" value="1"></div>
+                <div class="input-group" style="display:flex; gap:10px;">
+                    <select class="input-std" id="curr-from"><option value="USD">USD</option><option value="EUR">EUR</option><option value="INR">INR</option></select>
+                    <span style="align-self:center">➝</span>
+                    <select class="input-std" id="curr-to"><option value="INR">INR</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+                </div>
+                <button class="btn" onclick="calcCurrency()">Convert</button>
+                <div class="result" id="res-curr">
+                    <div class="result-item"><span>Value</span><span class="highlight-val" id="curr-val"></span></div>
+                </div>
+            </div>
+             <!-- GST -->
+             <div class="calculator-card" id="card-gst">
+                <div class="card-header"><h2>GST / VAT</h2></div>
+                <div class="input-group"><label>Amount</label><input class="input-std" type="number" id="gst-amt" value="1000"></div>
+                <div class="input-group"><label>Rate (%)</label><input class="input-std" type="number" id="gst-rate" value="18"></div>
+                <button class="btn" onclick="calcGST()">Calculate</button>
+                <div class="result" id="res-gst">
+                    <div class="result-item"><span>Tax</span><span id="gst-tax"></span></div>
+                    <div class="result-item"><span>Final</span><span class="highlight-val" id="gst-fin"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pin Footer -->
+<div class="pin-bar" id="pin-bar">
+    <div class="pin-content">
+        <div><span style="color:var(--primary-color); font-weight:800;">📌</span> <span id="pin-text" style="font-weight:600; margin-left:5px;"></span></div>
+        <button class="close-pin" onclick="closePin()">×</button>
+    </div>
+</div>
+
+<!-- Branding Modal -->
+<div class="modal-overlay" id="brand-modal" onclick="if(event.target==this) closeBranding()">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px;">Report Branding</h3>
+        <div class="input-group"><label>Company Name</label><input type="text" class="input-std" id="brand-name"></div>
+        <div class="input-group"><label>Contact Info</label><input type="text" class="input-std" id="brand-contact"></div>
+        <button class="btn" onclick="saveBranding()">Save</button>
+    </div>
+</div>
+
+<footer>
+    <p style="margin-bottom:10px">Privacy Policy • Terms of Use</p>
+    <p>&copy; 2025 Financial Calculators Hub</p>
+</footer>
+
+<script>
+// --- Config ---
+let currentLocale = 'en-IN';
+let currentCurrency = 'INR';
+let usageCount = 12405;
+let brandInfo = { name: "Financial Calculators Hub", contact: "" };
+
+// --- TABS ---
+function switchTab(tabName) {
+    // Hide all
+    document.querySelectorAll('.category-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    // Show target
+    document.getElementById('tab-'+tabName).classList.add('active');
+    // Highlight btn
+    // finding the button is tricky without ID, easier to loop
+    const btns = document.querySelectorAll('.tab-btn');
+    if(tabName==='invest') btns[0].classList.add('active');
+    if(tabName==='loans') btns[1].classList.add('active');
+    if(tabName==='plan') btns[2].classList.add('active');
+    if(tabName==='daily') btns[3].classList.add('active');
+}
+
+// --- Branding ---
+function openBranding() { document.getElementById('brand-modal').classList.add('show'); }
+function closeBranding() { document.getElementById('brand-modal').classList.remove('show'); }
+function saveBranding() {
+    brandInfo.name = document.getElementById('brand-name').value || "Financial Calculators Hub";
+    brandInfo.contact = document.getElementById('brand-contact').value;
+    closeBranding();
+}
+
+// --- Helpers ---
+function incStats() { usageCount++; document.getElementById('usage-stats').innerText = usageCount.toLocaleString(); }
+function formatMoney(n) { return n.toLocaleString(currentLocale, { style: 'currency', currency: currentCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function toggleFormat() {
+    if(currentLocale === 'en-IN') { currentLocale='en-US'; currentCurrency='USD'; }
+    else { currentLocale='en-IN'; currentCurrency='INR'; }
+    calcSIP(false); calcEMI(false); calcLump(); calcPPF(); calcFIRE();
+}
+function sync(s, t) { document.getElementById(t).value = document.getElementById(s).value; }
+function adjust(id, val) {
+    let el = document.getElementById(id);
+    el.value = (parseFloat(el.value) + val).toFixed(2).replace(/[.,]00$/, "");
+    if(document.getElementById(id+'-r')) document.getElementById(id+'-r').value=el.value;
+    saveInput(id);
+    if(id.includes('sip')) calcSIP(); if(id.includes('emi')) calcEMI();
+}
+function pinResult(label, value) { document.getElementById('pin-text').innerText = label + ": " + value; document.getElementById('pin-bar').classList.add('show'); }
+function closePin() { document.getElementById('pin-bar').classList.remove('show'); }
+function saveInput(id) { try { localStorage.setItem(id, document.getElementById(id).value); } catch(e){} }
+function loadInputs() {
+    const keys = ['sip-amt', 'sip-rate', 'sip-years', 'emi-amt', 'emi-rate', 'emi-years'];
+    keys.forEach(key => {
+        const val = localStorage.getItem(key);
+        if(val) { document.getElementById(key).value = val; if(document.getElementById(key+'-r')) document.getElementById(key+'-r').value=val; }
+    });
+}
+function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert("Copied!")); }
+function downloadPDF(id, name) { 
+    let el = document.getElementById(id);
+    let brandDiv = document.createElement('div');
+    brandDiv.innerHTML = `<h3 style="border-bottom:1px solid #ccc;padding-bottom:5px;">${brandInfo.name}</h3><p style="font-size:0.8rem;">${brandInfo.contact}</p>`;
+    el.insertBefore(brandDiv, el.firstChild);
+    html2pdf().from(el).save(name).then(() => { el.removeChild(brandDiv); });
+}
+function downloadCSV(tableId, filename) {
+    const rows = document.querySelectorAll('#'+tableId+' tr');
+    let csv = [];
+    for(let i=0; i<rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll("td, th");
+        for(let j=0; j<cols.length; j++) row.push(cols[j].innerText.replace(/,/g, ""));
+        csv.push(row.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], {type:'text/csv'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename+".csv"; a.click();
+}
+function toggleTable(id) { document.getElementById(id).classList.toggle('open'); }
+function shareSummary(type) { alert("Summary copied!"); } 
+
+// --- Charts ---
+let charts = {};
+function renderLineChart(canvasId, labels, dataInv, dataVal, label1, label2) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if(charts[canvasId]) charts[canvasId].destroy();
+    charts[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: label1 || 'Invested', data: dataInv, borderColor: '#e0e0e0', backgroundColor: 'rgba(224,224,224,0.2)', fill: true },
+                { label: label2 || 'Market Value', data: dataVal, borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.1)', fill: true }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, elements: { point: { radius: 0 } } }
+    });
+}
+function renderPie(canvasId, data, labels) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if(charts[canvasId]) charts[canvasId].destroy();
+    charts[canvasId] = new Chart(ctx, {
+        type: 'pie',
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#90caf9', '#f44336', '#4caf50', '#ff9800'] }] },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+// --- History ---
+function addToHistory(type, label, data) {
+    let hist = JSON.parse(localStorage.getItem(type+'_hist') || '[]');
+    hist.unshift({label: label, data: data}); if(hist.length > 3) hist.pop();
+    localStorage.setItem(type+'_hist', JSON.stringify(hist)); updateHistoryUI(type);
+}
+function updateHistoryUI(type) {
+    let hist = JSON.parse(localStorage.getItem(type+'_hist') || '[]');
+    let html = ''; hist.forEach((item, idx) => { html += `<div class="history-item" onclick="loadHistory('${type}', ${idx})">${item.label}</div>`; });
+    document.getElementById(type+'-hist').innerHTML = html || '<div style="padding:5px">No history</div>';
+}
+function loadHistory(type, idx) {
+    let hist = JSON.parse(localStorage.getItem(type+'_hist') || '[]');
+    let data = hist[idx].data;
+    if(type === 'sip') { document.getElementById('sip-amt').value = data.amt; document.getElementById('sip-rate').value = data.rate; document.getElementById('sip-years').value = data.years; sync('sip-amt', 'sip-amt-r'); sync('sip-rate', 'sip-rate-r'); sync('sip-years', 'sip-years-r'); calcSIP(false); } 
+    else if (type === 'emi') { document.getElementById('emi-amt').value = data.amt; document.getElementById('emi-rate').value = data.rate; document.getElementById('emi-years').value = data.years; sync('emi-amt', 'emi-amt-r'); sync('emi-rate', 'emi-rate-r'); sync('emi-years', 'emi-years-r'); calcEMI(false); }
+    document.getElementById(type+'-hist').classList.remove('show');
+}
+function toggleHistory(id) { document.getElementById(id).classList.toggle('show'); updateHistoryUI(id.split('-')[0]); }
+
+function initPage() { loadInputs(); calcSIP(false); calcEMI(false); }
+function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? '' : 'dark'); }
+
+// --- Calcs ---
+let sipMode = 'std';
+function toggleSIP(mode) { sipMode = mode; document.getElementById('sip-mode-std').classList.toggle('active', mode==='std'); document.getElementById('sip-mode-rev').classList.toggle('active', mode==='rev'); document.getElementById('sip-inputs-std').style.display = mode==='std' ? 'block' : 'none'; document.getElementById('sip-inputs-rev').style.display = mode==='rev' ? 'block' : 'none'; calcSIP(); }
+function calcSIP(saveHist=true) {
+    let r=parseFloat(document.getElementById('sip-rate').value)/1200, n=parseFloat(document.getElementById('sip-years').value)*12;
+    let inf = document.getElementById('sip-inf-tog').checked ? 0.06/12 : 0; 
+    if(sipMode === 'std') {
+        let start=parseFloat(document.getElementById('sip-amt').value), step=parseFloat(document.getElementById('sip-step').value)||0;
+        let bal=0, tot=0, mon=start, yearsArr=[], invArr=[], valArr=[];
+        for(let i=1; i<=n; i++) {
+            bal = bal + mon + (bal+mon)*r; let realBal = bal / Math.pow(1+inf, i); tot+=mon;
+            if(i%12===0) { mon*=(1+step/100); yearsArr.push(i/12); invArr.push(tot); valArr.push(inf > 0 ? realBal : bal); }
+        }
+        let finalVal = inf > 0 ? bal / Math.pow(1+inf, n) : bal;
+        document.getElementById('sip-val-1').innerText=formatMoney(finalVal); document.getElementById('sip-val-2').innerText=formatMoney(tot);
+        renderLineChart('chart-sip', yearsArr, invArr, valArr);
+        if(saveHist) addToHistory('sip', `SIP: ${start}/mo`, {amt:start, rate:document.getElementById('sip-rate').value, years:document.getElementById('sip-years').value});
+    }
+    document.getElementById('res-sip').classList.add('show');
+    document.getElementById('res-sip').scrollIntoView({behavior:'smooth', block:'nearest'}); // UX: Ensure visibility
+    incStats();
+}
+
+function calcEMI(saveHist=true) {
+    let p=parseFloat(document.getElementById('emi-amt').value), r=parseFloat(document.getElementById('emi-rate').value)/1200, n=parseFloat(document.getElementById('emi-years').value)*12;
+    let emi=(p*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); let tot=(emi*n)-p;
+    document.getElementById('emi-val').innerText=formatMoney(emi); document.getElementById('emi-int').innerText=formatMoney(tot);
+    renderPie('chart-emi', [p, tot], ['Principal', 'Interest']);
+    let bal=p, html=""; for(let i=1; i<=Math.min(n,360); i++) { let int=bal*r, prin=emi-int; bal-=prin; if(bal<0)bal=0; html+=`<tr><td>${i}</td><td>${formatMoney(prin)}</td><td>${formatMoney(int)}</td><td>${formatMoney(bal)}</td></tr>`; }
+    document.getElementById('emi-table-body').innerHTML=html;
+    document.getElementById('res-emi').classList.add('show');
+    document.getElementById('res-emi').scrollIntoView({behavior:'smooth', block:'nearest'});
+    if(saveHist) addToHistory('emi', `Loan: ${p}`, {amt:p, rate:document.getElementById('emi-rate').value, years:document.getElementById('emi-years').value});
+    incStats();
+}
+
+let fireMode = 'std';
+function toggleFIRE(mode) { fireMode = mode; document.getElementById('fire-mode-std').classList.toggle('active', mode==='std'); document.getElementById('fire-mode-draw').classList.toggle('active', mode==='draw'); document.getElementById('fire-draw-inputs').style.display = mode==='draw' ? 'block' : 'none'; calcFIRE(); }
+function calcFIRE() {
+    let exp = parseFloat(document.getElementById('fire-exp').value), save = parseFloat(document.getElementById('fire-save').value), annualSave = parseFloat(document.getElementById('fire-annual-save').value);
+    let age = parseFloat(document.getElementById('fire-age').value), retAge = parseFloat(document.getElementById('fire-ret-age').value), lifeExp = parseFloat(document.getElementById('fire-life').value) || 90;
+    let rate = parseFloat(document.getElementById('fire-rate').value) / 100, inflation = parseFloat(document.getElementById('fire-inf').value) / 100;
+    let yearsToRetire = retAge - age, yearsInRetire = lifeExp - retAge;
+    let futureExp = exp * Math.pow(1+inflation, yearsToRetire);
+    let target = fireMode === 'std' ? futureExp * 25 : futureExp * (1 - Math.pow(1+((1+rate)/(1+inflation)-1), -yearsInRetire)) / ((1+rate)/(1+inflation)-1);
+
+    let currentCorpus = save, yearsArr=[], corpusArr=[], targetArr=[], achievedYear = 0, achieved = false;
+    for(let i=0; i<=50; i++) {
+        yearsArr.push(age + i); corpusArr.push(currentCorpus); targetArr.push(target);
+        if(currentCorpus >= target && !achieved) { achievedYear = i; achieved = true; }
+        currentCorpus = (currentCorpus * (1 + rate)) + annualSave;
+    }
+    document.getElementById('fire-years').innerText = achieved ? achievedYear + " Years" : "> 50";
+    document.getElementById('fire-num').innerText = formatMoney(target);
+    document.getElementById('fire-coast').innerText = formatMoney(target / Math.pow(1+rate, yearsToRetire));
+
+    renderLineChart('chart-fire', yearsArr, targetArr, corpusArr, 'Target', 'Wealth');
+    let html = "", balance = target, withdraw = futureExp;
+    for(let i=1; i<=yearsInRetire; i++) { let growth = balance * rate, endBal = balance + growth - withdraw; if(endBal < 0) endBal = 0; html += `<tr><td>${retAge+i}</td><td>${formatMoney(balance)}</td><td>${formatMoney(withdraw)}</td></tr>`; balance = endBal; withdraw *= (1+inflation); }
+    document.getElementById('fire-table-body').innerHTML = html;
+    document.getElementById('res-fire').classList.add('show');
+    document.getElementById('res-fire').scrollIntoView({behavior:'smooth', block:'nearest'});
+    incStats();
+}
+
+function calcLump() { let p=parseFloat(document.getElementById("lump-amt").value), r=parseFloat(document.getElementById("lump-rate").value)/100, n=parseFloat(document.getElementById("lump-years").value); let fv=p*Math.pow(1+r,n); document.getElementById("lump-tot").innerText=formatMoney(fv); renderPie("chart-lump", [p, fv-p], ["Principal", "Interest"]); document.getElementById("res-lump").classList.add("show"); document.getElementById("res-lump").scrollIntoView({behavior:'smooth', block:'nearest'}); incStats(); }
+function calcPPF() { let p=parseFloat(document.getElementById('ppf-amt').value), r=parseFloat(document.getElementById('ppf-rate').value)/100; let acc=0; for(let i=0;i<15;i++) acc=(acc+p)*(1+r); document.getElementById('ppf-val').innerText=formatMoney(acc); renderPie('chart-ppf', [p*15, acc-(p*15)], ['Invested', 'Interest']); document.getElementById('res-ppf').classList.add('show'); document.getElementById("res-ppf").scrollIntoView({behavior:'smooth', block:'nearest'}); incStats(); }
+function calcPrep() { let saved=parseFloat(document.getElementById('prep-amt').value)*1.2; document.getElementById('prep-saved').innerText=formatMoney(saved); document.getElementById('res-prep').classList.add('show'); incStats(); }
+function calcBudget() { let i=parseFloat(document.getElementById('bud-income').value); let n=i*0.5, w=i*0.3, s=i*0.2; document.getElementById('bud-needs').innerText=formatMoney(n); document.getElementById('bud-wants').innerText=formatMoney(w); document.getElementById('bud-save').innerText=formatMoney(s); document.getElementById('bud-insight').innerHTML=`💡 Save <strong>${formatMoney(s)}</strong>/mo`; document.getElementById('bud-insight').style.display='block'; renderPie('chart-bud', [n, w, s], ['Needs', 'Wants', 'Savings']); document.getElementById('res-bud').classList.add('show'); document.getElementById("res-bud").scrollIntoView({behavior:'smooth', block:'nearest'}); incStats(); }
+function calcRet() { let age=parseFloat(document.getElementById('ret-age').value), exp=parseFloat(document.getElementById('ret-exp').value); let fv=exp*Math.pow(1.06, (60-age)); document.getElementById('ret-corpus').textContent=formatMoney(fv*12*25); document.getElementById('res-ret').classList.add('show'); incStats(); }
+async function calcCurrency() { let amt=parseFloat(document.getElementById('curr-amt').value); try { document.getElementById('curr-val').innerText=formatMoney(amt*84); } catch(e) {} document.getElementById('res-curr').classList.add('show'); incStats(); }
+function calcGST() { let a=parseFloat(document.getElementById('gst-amt').value), r=parseFloat(document.getElementById('gst-rate').value); let t=a*r/100; document.getElementById('gst-tax').innerText=formatMoney(t); document.getElementById('gst-fin').innerText=formatMoney(a+t); document.getElementById('res-gst').classList.add('show'); incStats(); }
+function resetCalc(type) {
+    if(type==='sip') { document.getElementById('sip-amt').value=5000; calcSIP(); }
+    if(type==='emi') { document.getElementById('emi-amt').value=1000000; calcEMI(); }
+    if(type==='lump') { document.getElementById('lump-amt').value=50000; calcLump(); }
+    if(type==='ppf') { document.getElementById('ppf-amt').value=150000; calcPPF(); }
+    if(type==='prep') { document.getElementById('prep-loan').value=3000000; document.getElementById('prep-amt').value=500000; calcPrep(); }
+    if(type==='fire') { document.getElementById('fire-exp').value=600000; calcFIRE(); }
+    if(type==='bud') { document.getElementById('bud-income').value=50000; calcBudget(); }
+    if(type==='ret') { document.getElementById('ret-age').value=30; calcRet(); }
+}
+</script>
+</body>
+</html>
