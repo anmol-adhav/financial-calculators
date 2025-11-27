@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ultimate Finance Suite | Visual & Detailed</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root { --primary:#4f46e5; --primary-dark:#4338ca; --accent:#8b5cf6; --bg-color:#f8fafc; --card-bg:#ffffff; --text-main:#1e293b; --text-light:#64748b; --border-color:#e2e8f0; --input-bg:#ffffff; --shadow:0 4px 6px -1px rgba(0,0,0,0.1); --slider-track:#cbd5e1; --slider-thumb:#4f46e5; --tooltip-bg:#1e293b; --tooltip-text:#f8fafc; }
+  [data-theme="dark"] { --primary:#6366f1; --primary-dark:#4f46e5; --bg-color:#0f172a; --card-bg:#1e293b; --text-main:#f1f5f9; --text-light:#94a3b8; --border-color:#334155; --input-bg:#0f172a; --shadow:0 4px 6px -1px rgba(0,0,0,0.5); --slider-track:#475569; --slider-thumb:#8b5cf6; --tooltip-bg:#f8fafc; --tooltip-text:#1e293b; }
+  body { background:var(--bg-color); color:var(--text-main); font-family:'Inter',sans-serif; margin:0; padding-top:110px; transition:all 0.3s; }
+  .container { max-width:1200px; margin:0 auto; padding:0 1rem; }
+
+  /* Nav & Layout */
+  .top-bar { position:fixed; top:0; left:0; right:0; z-index:900; display:flex; justify-content:space-between; align-items:center; padding:0.6rem 1.5rem; background:rgba(15,23,42,0.95); color:#e5e7eb; backdrop-filter:blur(10px); box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+  .filter-bar { position:sticky; top:60px; background:var(--card-bg); z-index:800; padding:0.8rem 0; border-bottom:1px solid var(--border-color); margin-bottom:2rem; }
+  .filter-inner { display:flex; gap:1rem; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:0 1rem; flex-wrap:wrap; }
+  .tabs { display:flex; gap:0.5rem; overflow-x:auto; }
+  .tab { padding:0.4rem 1rem; border-radius:20px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-light); font-weight:600; cursor:pointer; white-space:nowrap; font-size:0.85rem; }
+  .tab.active, .tab:hover { background:var(--primary); color:white; border-color:var(--primary); }
+  .search input { padding:0.5rem 1rem 0.5rem 2.2rem; border-radius:20px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-main); outline:none; }
+  .grid { display:grid; gap:2rem; grid-template-columns:repeat(auto-fit, minmax(450px, 1fr)); }
+  .card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:1.5rem; box-shadow:var(--shadow); transition:opacity 0.3s; }
+
+  /* Calculator Elements */
+  .card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; }
+  .card-head h2 { font-size:1.25rem; color:var(--primary); margin:0; font-weight:700; }
+  .input-group { margin-bottom:1.2rem; }
+  .input-group label { display:flex; justify-content:space-between; font-weight:600; font-size:0.9rem; margin-bottom:0.5rem; }
+  .input-group span { color:var(--primary); font-weight:700; }
+  input[type=range] { width:100%; height:6px; background:var(--slider-track); border-radius:5px; -webkit-appearance:none; outline:none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--slider-thumb); cursor:pointer; border:2px solid var(--bg-color); box-shadow:0 2px 5px rgba(0,0,0,0.2); margin-top:-6px; }
+  .calc-btn { width:100%; padding:0.8rem; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem; transition:0.2s; }
+
+  /* Results & Visuals */
+  .result-container { display:flex; gap:1rem; margin-top:1rem; align-items:flex-start; }
+  .result-box { flex:1; padding:1rem; background:var(--bg-color); border-left:4px solid var(--primary); border-radius:8px; }
+  .result-box strong { display:block; font-size:1.2rem; color:var(--primary-dark); margin-top:0.3rem; }
+  .doughnut-wrap { width:100px; height:100px; flex-shrink:0; position:relative; }
+
+  .charts-area { margin-top:1.5rem; }
+  .line-chart { width:100% !important; height:200px !important; background:var(--bg-color); border-radius:8px; padding:0.5rem; }
+
+  .btn-schedule { display:block; width:100%; margin-top:0.8rem; background:transparent; border:1px solid var(--border-color); color:var(--text-light); padding:0.5rem; border-radius:6px; cursor:pointer; font-size:0.85rem; }
+  .btn-schedule:hover { border-color:var(--primary); color:var(--primary); }
+
+  /* Goal Seeker */
+  .mode-toggle { display:flex; background:var(--bg-color); border-radius:12px; padding:0.2rem; margin-bottom:1.2rem; border:1px solid var(--border-color); }
+  .mode-btn { flex:1; padding:0.5rem; border:none; background:transparent; border-radius:10px; cursor:pointer; font-size:0.8rem; font-weight:600; color:var(--text-light); transition:0.2s; }
+  .mode-btn.active { background:var(--primary); color:white; }
+
+  /* Schedule Table Modal */
+  .schedule-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  .schedule-table th { text-align:left; padding:0.8rem; background:var(--bg-color); position:sticky; top:0; font-weight:600; color:var(--text-light); }
+  .schedule-table td { padding:0.6rem 0.8rem; border-bottom:1px solid var(--border-color); }
+  .schedule-table tr:hover { background:var(--bg-color); }
+
+  /* Modals Generic */
+  .modal-bg { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); opacity:0; transition:0.3s; }
+  .modal { background:var(--card-bg); width:90%; max-width:500px; padding:2rem; border-radius:16px; position:relative; max-height:90vh; overflow-y:auto; transform:scale(0.95); transition:0.3s; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); }
+  .modal.lg { max-width:800px; }
+  .close-modal { position:absolute; top:1rem; right:1rem; cursor:pointer; font-size:1.5rem; color:var(--text-light); }
+
+  /* Utility */
+  .icon-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-light); background:transparent; }
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#10b981; color:white; padding:0.8rem 1.5rem; border-radius:30px; font-weight:600; z-index:2000; opacity:0; transition:0.3s; pointer-events:none; }
+  .dark-toggle { position:fixed; bottom:20px; right:20px; width:48px; height:48px; background:var(--card-bg); border-radius:50%; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--primary); z-index:900; box-shadow:var(--shadow); }
+</style>
+</head>
+<body data-theme="light">
+
+<div class="top-bar">
+  <div style="display:flex;gap:1rem;align-items:center;"><div style="font-weight:800;font-size:1.1rem;">FinSuite Pro</div><select id="currencySelect" style="padding:0.3rem;border-radius:20px;background:rgba(255,255,255,0.1);color:white;border:1px solid #475569;"><option value="INR">INR (₹)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
+  <div style="display:flex;gap:1rem;"><button onclick="showScenarios()" style="background:var(--primary);color:white;border:none;padding:0.4rem 1rem;border-radius:20px;cursor:pointer;">Scenarios</button><button onclick="downloadPDF()" style="background:#10b981;color:white;border:none;padding:0.4rem 1rem;border-radius:20px;cursor:pointer;">PDF</button></div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="tabs">
+      <button class="tab active" onclick="filter('all',this)">All</button>
+      <button class="tab" onclick="filter('investment',this)">Investment</button>
+      <button class="tab" onclick="filter('retirement',this)">Retirement</button>
+      <button class="tab" onclick="filter('debt',this)">Debt</button>
+      <button class="tab" onclick="filter('lifestyle',this)">Lifestyle</button>
+    </div>
+    <div class="search" style="position:relative;"><i class="fa-solid fa-magnifying-glass" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i><input type="text" id="searchInp" placeholder="Filter..." onkeyup="filterSearch()" style="padding-left:2rem;"></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="grid" id="calcGrid">
+
+    <!-- 1. SIP Calculator -->
+    <section class="card" data-cat="investment" data-title="SIP">
+      <div class="card-head"><h2>SIP Calculator</h2><div style="display:flex;gap:5px;"><button class="icon-btn" onclick="saveModal('sip')"><i class="fa-regular fa-bookmark"></i></button></div></div>
+      <div class="mode-toggle"><button class="mode-btn active" onclick="setMode('sip','fv',this)">Future Value</button><button class="mode-btn" onclick="setMode('sip','pmt',this)">Goal Seeker</button></div>
+
+      <div class="input-group" id="sip-in-amt"><label>Monthly Investment <span id="sip-amt-val">₹5,000</span></label><input type="range" id="sip-amt" min="500" max="100000" step="500" value="5000" oninput="updateVal('sip-amt','₹')"></div>
+      <div class="input-group" id="sip-in-goal" style="display:none"><label>Target Goal <span id="sip-goal-val">₹1Cr</span></label><input type="range" id="sip-goal" min="100000" max="50000000" value="10000000" oninput="updateVal('sip-goal','₹')"></div>
+      <div class="input-group"><label>Rate (%) <span id="sip-rate-val">12%</span></label><input type="range" id="sip-rate" min="5" max="30" step="0.5" value="12" oninput="updateVal('sip-rate','','%')"></div>
+      <div class="input-group"><label>Years <span id="sip-years-val">10</span></label><input type="range" id="sip-years" min="1" max="40" value="10" oninput="updateVal('sip-years','',' Yrs')"></div>
+
+      <button class="calc-btn" onclick="calcSIP()">Calculate</button>
+
+      <div class="result-container">
+        <div class="result-box" id="sip-result"></div>
+        <div class="doughnut-wrap"><canvas id="sip-dough"></canvas></div>
+      </div>
+      <button class="btn-schedule" onclick="showSchedule('sip')"><i class="fa-solid fa-table"></i> View Schedule</button>
+      <div class="charts-area"><canvas id="sip-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 2. Step-Up SIP -->
+    <section class="card" data-cat="investment" data-title="Step-Up">
+      <div class="card-head"><h2>Step-Up SIP</h2><div style="display:flex;gap:5px;"><button class="icon-btn" onclick="saveModal('step')"><i class="fa-regular fa-bookmark"></i></button></div></div>
+      <div class="input-group"><label>Initial Monthly <span id="step-amt-val">₹5,000</span></label><input type="range" id="step-amt" min="500" max="100000" step="500" value="5000" oninput="updateVal('step-amt','₹')"></div>
+      <div class="input-group"><label>Annual Step-Up <span id="step-inc-val">10%</span></label><input type="range" id="step-inc" min="0" max="50" value="10" oninput="updateVal('step-inc','','%')"></div>
+      <div class="input-group"><label>Rate (%) <span id="step-rate-val">12%</span></label><input type="range" id="step-rate" min="5" max="30" step="0.5" value="12" oninput="updateVal('step-rate','','%')"></div>
+      <div class="input-group"><label>Years <span id="step-years-val">15</span></label><input type="range" id="step-years" min="1" max="40" value="15" oninput="updateVal('step-years','',' Yrs')"></div>
+      <button class="calc-btn" onclick="calcStep()">Calculate</button>
+      <div class="result-container">
+        <div class="result-box" id="step-result"></div>
+        <div class="doughnut-wrap"><canvas id="step-dough"></canvas></div>
+      </div>
+      <button class="btn-schedule" onclick="showSchedule('step')">View Schedule</button>
+      <div class="charts-area"><canvas id="step-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 3. Debt Payoff -->
+    <section class="card" data-cat="debt" data-title="Debt">
+      <div class="card-head"><h2>Debt Payoff</h2><div style="display:flex;gap:5px;"><button class="icon-btn" onclick="saveModal('debt')"><i class="fa-regular fa-bookmark"></i></button></div></div>
+      <div class="input-group"><label>Loan Balance <span id="debt-bal-val">₹5L</span></label><input type="range" id="debt-bal" min="10000" max="5000000" step="5000" value="500000" oninput="updateVal('debt-bal','₹')"></div>
+      <div class="input-group"><label>Interest Rate <span id="debt-rate-val">14%</span></label><input type="range" id="debt-rate" min="5" max="40" step="0.5" value="14" oninput="updateVal('debt-rate','','%')"></div>
+      <div class="input-group"><label>Monthly EMI <span id="debt-emi-val">₹15,000</span></label><input type="range" id="debt-emi" min="1000" max="100000" step="500" value="15000" oninput="updateVal('debt-emi','₹')"></div>
+      <button class="calc-btn" onclick="calcDebt()">Calculate</button>
+      <div class="result-container">
+        <div class="result-box" id="debt-result"></div>
+        <div class="doughnut-wrap"><canvas id="debt-dough"></canvas></div>
+      </div>
+      <button class="btn-schedule" onclick="showSchedule('debt')">Amortization Table</button>
+      <div class="charts-area"><canvas id="debt-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 4. Lumpsum -->
+    <section class="card" data-cat="investment" data-title="Lumpsum">
+      <div class="card-head"><h2>Lumpsum</h2><div style="display:flex;gap:5px;"><button class="icon-btn" onclick="saveModal('lump')"><i class="fa-regular fa-bookmark"></i></button></div></div>
+      <div class="input-group"><label>Investment <span id="lump-amt-val">₹1L</span></label><input type="range" id="lump-amt" min="5000" max="5000000" step="5000" value="100000" oninput="updateVal('lump-amt','₹')"></div>
+      <div class="input-group"><label>Rate <span id="lump-rate-val">12%</span></label><input type="range" id="lump-rate" min="5" max="30" step="0.5" value="12" oninput="updateVal('lump-rate','','%')"></div>
+      <div class="input-group"><label>Years <span id="lump-years-val">10</span></label><input type="range" id="lump-years" min="1" max="40" value="10" oninput="updateVal('lump-years','',' Yrs')"></div>
+      <button class="calc-btn" onclick="calcLumpsum()">Calculate</button>
+      <div class="result-container">
+        <div class="result-box" id="lump-result"></div>
+        <div class="doughnut-wrap"><canvas id="lump-dough"></canvas></div>
+      </div>
+      <button class="btn-schedule" onclick="showSchedule('lump')">View Schedule</button>
+      <div class="charts-area"><canvas id="lump-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 5. FIRE -->
+    <section class="card" data-cat="retirement" data-title="FIRE">
+      <div class="card-head"><h2>FIRE Calculator</h2><button class="icon-btn" onclick="saveModal('fire')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Annual Exp <span id="fire-exp-val">₹6L</span></label><input type="range" id="fire-exp" min="100000" max="5000000" value="600000" oninput="updateVal('fire-exp','₹')"></div>
+      <div class="input-group"><label>Years to Retire <span id="fire-years-val">15</span></label><input type="range" id="fire-years" min="1" max="40" value="15" oninput="updateVal('fire-years','',' Yrs')"></div>
+      <div class="input-group"><label>Inflation <span id="fire-inf-val">6%</span></label><input type="range" id="fire-inf" min="2" max="12" value="6" oninput="updateVal('fire-inf','','%')"></div>
+      <button class="calc-btn" onclick="calcFIRE()">Calculate</button>
+      <div class="result-box" id="fire-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="fire-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 6. Expense Tracker -->
+    <section class="card" data-cat="lifestyle" data-title="Expense">
+      <div class="card-head"><h2>Expense Tracker</h2><button class="icon-btn" onclick="saveModal('exp')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Income <span id="exp-inc-val">₹50k</span></label><input type="range" id="exp-inc" min="10000" max="500000" value="50000" oninput="updateVal('exp-inc','₹');calcExp()"></div>
+      <div id="exp-list" style="max-height:150px;overflow-y:auto;margin-bottom:1rem;">
+        <div style="display:flex;gap:5px;margin-bottom:5px;"><input type="text" placeholder="Rent" style="flex:2;padding:5px;border:1px solid #ccc;border-radius:4px;" value="Rent"><input type="number" class="exp-cost" value="15000" oninput="calcExp()" style="flex:1;padding:5px;border:1px solid #ccc;border-radius:4px;"></div>
+      </div>
+      <button onclick="addExp()" style="width:100%;padding:5px;background:#f1f5f9;border:1px dashed #ccc;cursor:pointer;">+ Add Item</button>
+      <div class="result-box" id="exp-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 7. Goal Planner -->
+    <section class="card" data-cat="lifestyle" data-title="Goal">
+      <div class="card-head"><h2>Goal Planner</h2><button class="icon-btn" onclick="saveModal('goal')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Goal <span id="goal-amt-val">₹5L</span></label><input type="range" id="goal-amt" min="50000" max="10000000" value="500000" oninput="updateVal('goal-amt','₹')"></div>
+      <div class="input-group"><label>Years <span id="goal-y-val">3</span></label><input type="range" id="goal-y" min="1" max="20" value="3" oninput="updateVal('goal-y','',' Yrs')"></div>
+      <div class="input-group"><label>Rate <span id="goal-r-val">8%</span></label><input type="range" id="goal-r" min="4" max="15" value="8" oninput="updateVal('goal-r','','%')"></div>
+      <button class="calc-btn" onclick="calcGoal()">Calculate</button>
+      <div class="result-box" id="goal-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 8. ROI -->
+    <section class="card" data-cat="investment" data-title="ROI">
+      <div class="card-head"><h2>ROI Calculator</h2><button class="icon-btn" onclick="saveModal('roi')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Cost <span id="roi-cost-val">₹1L</span></label><input type="range" id="roi-cost" min="1000" max="10000000" value="100000" oninput="updateVal('roi-cost','₹')"></div>
+      <div class="input-group"><label>Value <span id="roi-val-val">₹1.5L</span></label><input type="range" id="roi-val" min="1000" max="15000000" value="150000" oninput="updateVal('roi-val','₹')"></div>
+      <button class="calc-btn" onclick="calcROI()">Calculate</button>
+      <div class="result-box" id="roi-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="roi-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 9. Crypto -->
+    <section class="card" data-cat="investment" data-title="Crypto">
+      <div class="card-head"><h2>Crypto PnL</h2><button class="icon-btn" onclick="saveModal('cry')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Buy <span id="cry-buy-val">₹50k</span></label><input type="range" id="cry-buy" min="1000" max="1000000" value="50000" oninput="updateVal('cry-buy','₹')"></div>
+      <div class="input-group"><label>Sell <span id="cry-sell-val">₹75k</span></label><input type="range" id="cry-sell" min="1000" max="1000000" value="75000" oninput="updateVal('cry-sell','₹')"></div>
+      <div class="input-group"><label>Fee % <span id="cry-fee-val">0.5%</span></label><input type="range" id="cry-fee" min="0" max="5" step="0.1" value="0.5" oninput="updateVal('cry-fee','','%')"></div>
+      <button class="calc-btn" onclick="calcCrypto()">Calculate</button>
+      <div class="result-box" id="cry-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 10. SWP -->
+    <section class="card" data-cat="retirement" data-title="SWP">
+      <div class="card-head"><h2>SWP</h2><button class="icon-btn" onclick="saveModal('swp')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Corpus <span id="swp-bal-val">₹20L</span></label><input type="range" id="swp-bal" min="100000" max="10000000" value="2000000" oninput="updateVal('swp-bal','₹')"></div>
+      <div class="input-group"><label>Withdraw <span id="swp-wd-val">₹15k</span></label><input type="range" id="swp-wd" min="1000" max="100000" value="15000" oninput="updateVal('swp-wd','₹')"></div>
+      <div class="input-group"><label>Rate <span id="swp-rate-val">8%</span></label><input type="range" id="swp-rate" min="4" max="15" value="8" oninput="updateVal('swp-rate','','%')"></div>
+      <button class="calc-btn" onclick="calcSWP()">Calculate</button>
+      <div class="result-box" id="swp-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="swp-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 11. GST -->
+    <section class="card" data-cat="tax" data-title="GST">
+      <div class="card-head"><h2>GST</h2><button class="icon-btn" onclick="saveModal('gst')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Price <span id="gst-price-val">₹1000</span></label><input type="range" id="gst-price" min="100" max="100000" value="1000" oninput="updateVal('gst-price','₹')"></div>
+      <div class="input-group"><label>Tax <span id="gst-rate-val">18%</span></label><input type="range" id="gst-rate" min="0" max="30" value="18" oninput="updateVal('gst-rate','','%')"></div>
+      <select id="gst-type"><option value="add">Add Tax</option><option value="remove">Remove Tax</option></select>
+      <button class="calc-btn" onclick="calcGST()">Calculate</button>
+      <div class="result-box" id="gst-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 12. Break Even -->
+    <section class="card" data-cat="tax" data-title="Break Even">
+      <div class="card-head"><h2>Break Even</h2><button class="icon-btn" onclick="saveModal('be')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Fixed <span id="be-fix-val">₹50k</span></label><input type="range" id="be-fix" min="1000" max="500000" value="50000" oninput="updateVal('be-fix','₹')"></div>
+      <div class="input-group"><label>Price <span id="be-price-val">₹500</span></label><input type="range" id="be-price" min="10" max="5000" value="500" oninput="updateVal('be-price','₹')"></div>
+      <div class="input-group"><label>Var Cost <span id="be-var-val">₹200</span></label><input type="range" id="be-var" min="0" max="4000" value="200" oninput="updateVal('be-var','₹')"></div>
+      <button class="calc-btn" onclick="calcBE()">Calculate</button>
+      <div class="result-box" id="be-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 13. Rent vs Buy -->
+    <section class="card" data-cat="lifestyle" data-title="Rent vs Buy">
+      <div class="card-head"><h2>Rent vs Buy</h2><button class="icon-btn" onclick="saveModal('rvb')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Home <span id="rvb-p-val">₹50L</span></label><input type="range" id="rvb-p" min="1000000" max="20000000" value="5000000" oninput="updateVal('rvb-p','₹')"></div>
+      <div class="input-group"><label>Rent <span id="rvb-r-val">₹15k</span></label><input type="range" id="rvb-r" min="5000" max="100000" value="15000" oninput="updateVal('rvb-r','₹')"></div>
+      <div class="input-group"><label>Return <span id="rvb-ret-val">10%</span></label><input type="range" id="rvb-ret" min="5" max="15" step="0.5" value="10" oninput="updateVal('rvb-ret','','%')"></div>
+      <button class="calc-btn" onclick="calcRvB()">Compare</button>
+      <div class="result-box" id="rvb-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="rvb-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 14. Car Budget -->
+    <section class="card" data-cat="lifestyle" data-title="Car">
+      <div class="card-head"><h2>Car Budget</h2><button class="icon-btn" onclick="saveModal('car')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Income <span id="car-inc-val">₹80k</span></label><input type="range" id="car-inc" min="10000" max="500000" value="80000" oninput="updateVal('car-inc','₹')"></div>
+      <div class="input-group"><label>Down Pmt <span id="car-dp-val">₹1L</span></label><input type="range" id="car-dp" min="0" max="1000000" value="100000" oninput="updateVal('car-dp','₹')"></div>
+      <button class="calc-btn" onclick="calcCar()">Check</button>
+      <div class="result-box" id="car-result" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- 15. Inflation -->
+    <section class="card" data-cat="lifestyle" data-title="Inflation">
+      <div class="card-head"><h2>Inflation</h2><button class="icon-btn" onclick="saveModal('inf')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Amount <span id="inf-amt-val">₹10k</span></label><input type="range" id="inf-amt" min="100" max="1000000" value="10000" oninput="updateVal('inf-amt','₹')"></div>
+      <div class="input-group"><label>Rate <span id="inf-rate-val">6%</span></label><input type="range" id="inf-rate" min="1" max="15" value="6" oninput="updateVal('inf-rate','','%')"></div>
+      <div class="input-group"><label>Years <span id="inf-y-val">10</span></label><input type="range" id="inf-y" min="1" max="50" value="10" oninput="updateVal('inf-y','',' Yrs')"></div>
+      <button class="calc-btn" onclick="calcInf()">Calculate</button>
+      <div class="result-box" id="inf-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="inf-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 16. College -->
+    <section class="card" data-cat="retirement" data-title="College">
+      <div class="card-head"><h2>College</h2><button class="icon-btn" onclick="saveModal('col')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Cost Now <span id="col-cost-val">₹10L</span></label><input type="range" id="col-cost" min="100000" max="10000000" value="1000000" oninput="updateVal('col-cost','₹')"></div>
+      <div class="input-group"><label>Years <span id="col-y-val">10</span></label><input type="range" id="col-y" min="1" max="20" value="10" oninput="updateVal('col-y','','')"></div>
+      <div class="input-group"><label>Inflation <span id="col-inf-val">8%</span></label><input type="range" id="col-inf" min="2" max="15" value="8" oninput="updateVal('col-inf','','%')"></div>
+      <button class="calc-btn" onclick="calcCol()">Calculate</button>
+      <div class="result-box" id="col-result" style="margin-top:1rem;"></div>
+      <div class="charts-area"><canvas id="col-chart" class="line-chart"></canvas></div>
+    </section>
+
+    <!-- 17. Freelance -->
+    <section class="card" data-cat="tax" data-title="Freelance">
+      <div class="card-head"><h2>Freelance</h2><button class="icon-btn" onclick="saveModal('free')"><i class="fa-regular fa-bookmark"></i></button></div>
+      <div class="input-group"><label>Goal <span id="free-inc-val">₹12L</span></label><input type="range" id="free-inc" min="100000" max="5000000" value="1200000" oninput="updateVal('free-inc','₹')"></div>
+      <div class="input-group"><label>Hours <span id="free-hrs-val">5</span></label><input type="range" id="free-hrs" min="1" max="12" value="5" oninput="updateVal('free-hrs','','')"></div>
+      <button class="calc-btn" onclick="calcFree()">Calculate</button>
+      <div class="result-box" id="free-result" style="margin-top:1rem;"></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-bg" id="schedMod"><div class="modal lg"><span class="close-modal" onclick="closeM('schedMod')">&times;</span><h3>Detailed Schedule</h3><div id="schedContent"></div></div></div>
+<div class="modal-bg" id="saveMod"><div class="modal"><span class="close-modal" onclick="closeM('saveMod')">&times;</span><h3>Save</h3><input type="text" id="saveName" placeholder="Name"><button class="calc-btn" onclick="doSave()">Save</button></div></div>
+<div class="modal-bg" id="listMod"><div class="modal"><span class="close-modal" onclick="closeM('listMod')">&times;</span><h3>Saved</h3><div id="scenList"></div></div></div>
+<div class="dark-toggle" id="dt" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></div>
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+// --- GLOBALS ---
+let curCurr = 'INR';
+let curId = '';
+let charts = {};
+let doughnutCharts = {};
+let scheduleData = {};
+const rates = { INR:{s:'₹',r:1}, USD:{s:'$',r:0.012}, EUR:{s:'€',r:0.011} };
+let sipMode='fv', stepMode='fv', lumpMode='fv';
+
+// --- UTILS ---
+const fmt = n => (n*rates[curCurr].r).toLocaleString('en-US',{style:'currency',currency:curCurr,maximumFractionDigits:0});
+const getVal = id => parseFloat(document.getElementById(id).value);
+const setTxt = (id,t) => document.getElementById(id).innerText=t;
+const updateVal = (id,p='',s='') => { const v=getVal(id); setTxt(id+'-val', p==='₹'?fmt(v):p+v+s); };
+const toggleF = b => { const d=b.nextElementSibling.style.display; b.nextElementSibling.style.display=d==='block'?'none':'block'; };
+
+const drawChart = (id,l,d,c='#4f46e5',f=false) => {
+    if(charts[id]) charts[id].destroy();
+    charts[id] = new Chart(document.getElementById(id), {
+        type:'line', data:{labels:l,datasets:[{label:'Value',data:d,borderColor:c,backgroundColor:c+'20',fill:f,tension:0.3}]},
+        options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+    });
+};
+
+const drawDoughnut = (id, data, labels) => {
+    if(doughnutCharts[id]) doughnutCharts[id].destroy();
+    doughnutCharts[id] = new Chart(document.getElementById(id), {
+        type:'doughnut',
+        data:{labels:labels,datasets:[{data:data,backgroundColor:['#cbd5e1','#4f46e5']}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+    });
+};
+
+// --- CALCULATORS ---
+window.calcSIP = () => {
+    const r=getVal('sip-rate')/1200, n=getVal('sip-years')*12;
+    if(sipMode==='fv'){
+        const p=getVal('sip-amt');
+        const res = p*((Math.pow(1+r,n)-1)/r)*(1+r);
+        const inv = p*n;
+        document.getElementById('sip-result').innerHTML = `Inv: ${fmt(inv)}<br><strong>Val: ${fmt(res)}</strong>`;
+        // Charts
+        drawDoughnut('sip-dough', [inv, res-inv], ['Invested','Interest']);
+        const l=[], d=[]; let bal=0; scheduleData['sip']=[];
+        for(let i=1; i<=n; i++){
+            bal = (bal+p)*(1+r);
+            if(i%12===0){ l.push('Y'+i/12); d.push(bal); scheduleData['sip'].push({y:i/12, inv:p*i, val:bal}); }
+        }
+        drawChart('sip-chart', l, d, '#4f46e5', true);
+    } else {
+        const g=getVal('sip-goal');
+        const req = g / (((Math.pow(1+r,n)-1)/r)*(1+r));
+        document.getElementById('sip-result').innerHTML = `Goal: ${fmt(g)}<br><strong>Req: ${fmt(req)}</strong>`;
+        if(doughnutCharts['sip-dough']) doughnutCharts['sip-dough'].destroy();
+    }
+};
+
+window.calcStep = () => {
+    const r=getVal('step-rate')/100, y=getVal('step-years'), inc=getVal('step-inc')/100;
+    let p=getVal('step-amt'), v=0, inv=0; const l=[], d=[]; scheduleData['step']=[];
+    for(let i=1; i<=y; i++){
+        v=(v+(p*12))*(1+r); inv+=p*12; p*=(1+inc);
+        l.push('Y'+i); d.push(v); scheduleData['step'].push({y:i, inv:inv, val:v});
+    }
+    document.getElementById('step-result').innerHTML = `Inv: ${fmt(inv)}<br><strong>Val: ${fmt(v)}</strong>`;
+    drawDoughnut('step-dough', [inv, v-inv], ['Invested','Interest']);
+    drawChart('step-chart', l, d, '#8b5cf6', true);
+};
+
+window.calcLumpsum = () => {
+    const r=getVal('lump-rate')/100, t=getVal('lump-years');
+    const p=getVal('lump-amt');
+    const v = p*Math.pow(1+r,t);
+    document.getElementById('lump-result').innerHTML = `Inv: ${fmt(p)}<br><strong>Val: ${fmt(v)}</strong>`;
+    drawDoughnut('lump-dough', [p, v-p], ['Invested','Interest']);
+    const l=[], d=[]; scheduleData['lump']=[];
+    for(let i=0; i<=t; i++){ 
+        const val = p*Math.pow(1+r,i);
+        l.push('Y'+i); d.push(val); scheduleData['lump'].push({y:i, inv:p, val:val});
+    }
+    drawChart('lump-chart', l, d, '#10b981');
+};
+
+window.calcDebt = () => {
+    let b=getVal('debt-bal'), r=getVal('debt-rate')/1200, p=getVal('debt-emi');
+    if(b*r>=p){ document.getElementById('debt-result').innerHTML="Increase EMI!"; return; }
+    let m=0, ti=0; const l=[], d=[]; scheduleData['debt']=[];
+    const startB = b;
+    while(b>0 && m<360){
+        const int = b*r; ti+=int; b=b+int-p; if(b<0)b=0; m++;
+        if(m%12===0){ l.push('Y'+m/12); d.push(b); scheduleData['debt'].push({y:m/12, int:ti, bal:b}); }
+    }
+    document.getElementById('debt-result').innerHTML = `Free: <strong>${(m/12).toFixed(1)} Yrs</strong><br>Int: ${fmt(ti)}`;
+    drawDoughnut('debt-dough', [startB, ti], ['Principal','Interest']);
+    drawChart('debt-chart', l, d, '#dc2626', true);
+};
+
+// --- SCHEDULE ---
+window.showSchedule = type => {
+    const data = scheduleData[type];
+    if(!data) return;
+    let h = `<table class="schedule-table"><thead><tr><th>Year</th><th>${type==='debt'?'Interest Paid':'Invested'}</th><th>Balance</th></tr></thead><tbody>`;
+    data.forEach(r => {
+        h += `<tr><td>${r.y}</td><td>${fmt(type==='debt'?r.int:r.inv)}</td><td>${fmt(type==='debt'?r.bal:r.val)}</td></tr>`;
+    });
+    h += '</tbody></table>';
+    document.getElementById('schedContent').innerHTML = h;
+    document.getElementById('schedMod').style.display='flex';
+    setTimeout(()=>document.getElementById('schedMod').style.opacity=1,10);
+};
+
+// --- STANDARD CALCS ---
+window.calcFIRE = () => {
+    const e=getVal('fire-exp'), y=getVal('fire-years'), i=getVal('fire-inf')/100;
+    const req = e * Math.pow(1+i,y) * 25;
+    document.getElementById('fire-result').innerHTML = `Target: <strong>${fmt(req)}</strong>`;
+    const l=[], d=[]; for(let j=0; j<=y; j++){ l.push('Y'+j); d.push(e*Math.pow(1+i,j)*25); }
+    drawChart('fire-chart', l, d, '#ef4444');
+};
+window.calcROI = () => {
+    const c=getVal('roi-cost'), v=getVal('roi-val');
+    document.getElementById('roi-result').innerHTML = `Profit: ${fmt(v-c)}<br><strong>ROI: ${(((v-c)/c)*100).toFixed(2)}%</strong>`;
+    if(charts['roi-chart']) charts['roi-chart'].destroy();
+    charts['roi-chart'] = new Chart(document.getElementById('roi-chart'), {type:'bar',data:{labels:['Cost','Value'],datasets:[{label:'Amt',data:[c,v],backgroundColor:['#94a3b8','#10b981']}]},options:{responsive:true,maintainAspectRatio:false}});
+};
+window.calcCrypto = () => document.getElementById('cry-result').innerHTML = `PnL: <strong>${fmt(getVal('cry-sell')-getVal('cry-buy')-(getVal('cry-buy')*getVal('cry-fee')/100 + getVal('cry-sell')*getVal('cry-fee')/100))}</strong>`;
+window.calcSWP = () => {
+    let b=getVal('swp-bal'), w=getVal('swp-wd'), r=getVal('swp-rate')/1200, m=0; const l=[], d=[];
+    while(b>0 && m<360){ if(m%12===0){l.push(m/12);d.push(b);} b=b*(1+r)-w; m++; }
+    document.getElementById('swp-result').innerHTML = `Lasts: <strong>${(m/12).toFixed(1)} Years</strong>`;
+    drawChart('swp-chart', l, d, '#f59e0b', true);
+};
+window.calcGST = () => document.getElementById('gst-result').innerHTML = `Total: <strong>${fmt(document.getElementById('gst-type').value==='add' ? getVal('gst-price')*(1+getVal('gst-rate')/100) : getVal('gst-price')/(1+getVal('gst-rate')/100))}</strong>`;
+window.calcBE = () => document.getElementById('be-result').innerHTML = `Sell: <strong>${Math.ceil(getVal('be-fix')/(getVal('be-price')-getVal('be-var')))} units</strong>`;
+window.calcFree = () => document.getElementById('free-result').innerHTML = `Rate: <strong>${fmt(getVal('free-inc')/((365-getVal('free-off')-104)*getVal('free-hrs')))} /hr</strong>`;
+window.calcCar = () => document.getElementById('car-result').innerHTML = `Max Price: <strong>${fmt(getVal('car-inc')*0.1*48 + getVal('car-dp'))}</strong>`;
+window.calcGoal = () => { const n=getVal('goal-y')*12, r=getVal('goal-r')/1200; document.getElementById('goal-result').innerHTML=`Save: <strong>${fmt(getVal('goal-amt')/(((Math.pow(1+r,n)-1)/r)*(1+r)))} /mo</strong>`; };
+window.calcInf = () => { const f=getVal('inf-amt')*Math.pow(1+getVal('inf-rate')/100,getVal('inf-y')); document.getElementById('inf-result').innerHTML=`Future: <strong>${fmt(f)}</strong>`; drawChart('inf-chart',['Now','Fut'],[getVal('inf-amt'),f],'#6366f1',false); };
+window.calcCol = () => { const f=getVal('col-cost')*Math.pow(1+getVal('col-inf')/100,getVal('col-y')); document.getElementById('col-result').innerHTML=`Future: <strong>${fmt(f)}</strong>`; drawChart('col-chart',['Now','Fut'],[getVal('col-cost'),f],'#ef4444',false); };
+window.calcRvB = () => {
+    let rw=getVal('rvb-p')*0.2, bw=getVal('rvb-p')*0.2; const l=[], dr=[], db=[];
+    const ret=getVal('rvb-ret')/100;
+    for(let i=1; i<=20; i++){ rw=rw*(1+ret)+((getVal('rvb-p')*0.8*0.008)-getVal('rvb-r'))*12; bw=getVal('rvb-p')*Math.pow(1.04,i)-(getVal('rvb-p')*0.8*Math.pow(0.95,i)); l.push(i); dr.push(rw); db.push(bw); }
+    document.getElementById('rvb-result').innerHTML = `Rent: ${fmt(rw)}<br>Buy: <strong>${fmt(bw)}</strong>`;
+    if(charts['rvb-chart']) charts['rvb-chart'].destroy();
+    charts['rvb-chart'] = new Chart(document.getElementById('rvb-chart'), {type:'line',data:{labels:l,datasets:[{label:'Rent',data:dr,borderColor:'#f59e0b'},{label:'Buy',data:db,borderColor:'#10b981'}]},options:{responsive:true,maintainAspectRatio:false}});
+};
+
+// --- EXTRAS ---
+window.calcExp = () => { const i=getVal('exp-inc'); let t=0; document.querySelectorAll('.exp-cost').forEach(x=>t+=parseFloat(x.value||0)); document.getElementById('exp-result').innerHTML=`Total: ${fmt(t)}<br>Surplus: <strong>${fmt(i-t)}</strong>`; };
+window.addExp = () => { document.getElementById('exp-list').insertAdjacentHTML('beforeend',`<div style="display:flex;gap:5px;margin-bottom:5px;"><input type="text" style="flex:2;padding:5px;border:1px solid #ccc;border-radius:4px;"><input type="number" class="exp-cost" value="0" oninput="calcExp()" style="flex:1;padding:5px;border:1px solid #ccc;border-radius:4px;"></div>`); };
+window.setMode = (c,m,b) => { if(c==='sip') sipMode=m; document.getElementById(c+'-in-amt').style.display=m==='fv'?'block':'none'; document.getElementById(c+'-in-goal').style.display=m==='fv'?'none':'block'; b.parentElement.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+window.saveModal = id => { curId=id; document.getElementById('saveMod').style.display='flex'; setTimeout(()=>document.getElementById('saveMod').style.opacity=1,10); };
+window.closeM = id => { document.getElementById(id).style.opacity=0; setTimeout(()=>document.getElementById(id).style.display='none',300); };
+window.doSave = () => { const s=JSON.parse(localStorage.getItem('fs_scen')||'[]'); s.push({id:Date.now(),name:document.getElementById('saveName').value,type:curId,date:new Date().toLocaleDateString()}); localStorage.setItem('fs_scen',JSON.stringify(s)); closeM('saveMod'); };
+window.showScenarios = () => { const s=JSON.parse(localStorage.getItem('fs_scen')||'[]'); document.getElementById('scenList').innerHTML = s.map(i=>`<div class="scen-item"><div><strong>${i.name}</strong> <small>${i.type}</small></div><button onclick="delScen(${i.id})" style="color:red;border:none;background:none;">Del</button></div>`).join('')||'<p>No scenarios.</p>'; document.getElementById('listMod').style.display='flex'; setTimeout(()=>document.getElementById('listMod').style.opacity=1,10); };
+window.delScen = id => { localStorage.setItem('fs_scen',JSON.stringify(JSON.parse(localStorage.getItem('fs_scen')).filter(x=>x.id!==id))); showScenarios(); };
+window.downloadPDF = async () => { const d=new window.jspdf.jsPDF('p','mm','a4'); await new Promise(r=>setTimeout(r,500)); const c=await html2canvas(document.querySelector('.container'),{scale:1}); const i=c.toDataURL('image/png'); d.addImage(i,'PNG',0,0,d.internal.pageSize.getWidth(),(c.height*d.internal.pageSize.getWidth())/c.width); d.save('Report.pdf'); };
+window.filter = (c,b) => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); document.querySelectorAll('.card').forEach(x=>x.style.display=(c==='all'||x.dataset.cat===c)?'':'none'); };
+window.filterSearch = () => { const v=document.getElementById('searchInp').value.toLowerCase(); document.querySelectorAll('.card').forEach(x=>x.style.display=x.dataset.title.toLowerCase().includes(v)?'':'none'); };
+window.toggleTheme = () => { const b=document.body; b.dataset.theme=b.dataset.theme==='dark'?'light':'dark'; document.getElementById('dt').innerHTML=b.dataset.theme==='dark'?'<i class="fa-solid fa-sun"></i>':'<i class="fa-solid fa-moon"></i>'; };
+
+window.onload = () => {
+    document.querySelectorAll('input[type="range"]').forEach(i => { if(i.id.match(/(rate|inf|ret|fee)/)) i.addEventListener('input',()=>updateVal(i.id,'','%')); else if(i.id.match(/(years|y)/)) i.addEventListener('input',()=>updateVal(i.id,'',' Yrs')); else i.addEventListener('input',()=>updateVal(i.id,'₹')); i.dispatchEvent(new Event('input')); });
+    document.getElementById('currencySelect').addEventListener('change',e=>{ curCurr=e.target.value; document.querySelectorAll('input[type="range"]').forEach(i=>i.dispatchEvent(new Event('input'))); calcSIP(); calcStep(); calcLumpsum(); calcDebt(); calcFIRE(); calcSWP(); calcROI(); calcCrypto(); calcRvB(); calcCol(); calcInf(); calcGoal(); calcCar(); calcExp(); calcGST(); calcBE(); calcFree(); });
+    calcSIP(); calcStep(); calcLumpsum(); calcDebt(); calcFIRE(); calcSWP(); calcROI(); calcCrypto(); calcRvB(); calcCol(); calcInf(); calcGoal(); calcCar(); calcExp(); calcGST(); calcBE(); calcFree();
+};
+</script>
+</body>
+</html>
