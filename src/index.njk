@@ -1,0 +1,51 @@
+---
+layout: layouts/base.njk
+permalink: /
+title: "CalculateMoney — Free Financial Calculators for India (EMI, SIP, Tax & More)"
+description: "Free, fast and accurate financial calculators for India — EMI, SIP, income tax (FY 2025-26), FD, PPF, FIRE, SWP and more. No sign-up, instant results, shareable links."
+---
+<div class="wrap">
+  <section class="hero">
+    <h1>Financial calculators that give you the real numbers</h1>
+    <p>Free, accurate and built for India — from loan EMIs and SIP returns to the new-vs-old tax regime. No sign-up, no spreadsheets. Every calculator updates instantly and every calculation has a shareable link.</p>
+  </section>
+
+  {% set cats = [
+    { name: "Loans", blurb: "Know the true cost of borrowing before you sign." },
+    { name: "Investments", blurb: "Project SIPs, lumpsums and long-term compounding." },
+    { name: "Deposits", blurb: "Bank-accurate maths for FDs, RDs and PPF." },
+    { name: "Tax", blurb: "FY 2025-26 income tax and current GST rates." },
+    { name: "Retirement", blurb: "Size your corpus and plan the withdrawal phase." },
+    { name: "Planning", blurb: "See what inflation does to money over time." }
+  ] %}
+
+  {% for cat in cats %}
+  <p class="cat-label">{{ cat.name }} — {{ cat.blurb }}</p>
+  <div class="card-grid">
+    {% for c in calcs %}{% if c.cat == cat.name %}
+    <a class="calc-card" href="/{{ c.slug }}/">
+      <span class="calc-card-icon" aria-hidden="true">{{ c.icon }}</span>
+      <span class="calc-card-name">{{ c.name }}</span>
+      <span class="calc-card-short">{{ c.short }}</span>
+    </a>
+    {% endif %}{% endfor %}
+  </div>
+  {% endfor %}
+
+  <section class="prose" style="margin-top:3rem;">
+    <h2>Why CalculateMoney?</h2>
+    <p><strong>Accurate methods, stated openly.</strong> Every calculator explains its formula and assumptions on the page — the FD calculator compounds quarterly like Indian banks do, the RD calculator computes per-instalment interest the way the post office does, and the income tax calculator applies the Section 87A rebate, surcharge and marginal relief exactly as the Finance Act 2025 prescribes.</p>
+    <p><strong>Type or slide.</strong> Enter exact amounts like ₹4,83,250 or drag a slider to explore. Results, charts and year-by-year tables update instantly — and the link in your address bar always reproduces your exact calculation, so you can save or share it.</p>
+    <p><strong>Free and private.</strong> No login, no personal data collected by the calculators — everything runs in your browser. These tools are for education and planning; for major decisions, verify with a qualified advisor.</p>
+  </section>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "{{ site.name }}",
+  "url": "{{ site.url }}/",
+  "description": {{ site.description | dump | safe }}
+}
+</script>

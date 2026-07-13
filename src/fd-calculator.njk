@@ -1,0 +1,119 @@
+---
+layout: layouts/calculator.njk
+permalink: /fd-calculator/
+title: "FD Calculator — Fixed Deposit Maturity & Interest Calculator"
+h1: "FD Calculator"
+description: "Calculate fixed deposit maturity amount and interest with quarterly compounding, the method Indian banks use. Compare payout options and see year-wise growth."
+lede: "Work out exactly what your bank FD will pay at maturity, using the quarterly compounding method Indian banks actually apply."
+updated: 2026-07-13
+related: [rd-calculator, ppf-calculator, inflation-calculator]
+faqs:
+  - q: "How do banks calculate FD interest?"
+    a: >-
+      For cumulative FDs, Indian banks compound interest quarterly: A = P × (1 + r/4)^(4t), where P is the deposit, r the annual rate and t the tenure in years. For non-cumulative FDs that pay out monthly or quarterly, interest is paid simple at each interval instead of compounding.
+  - q: "Is FD interest taxable?"
+    a: >-
+      Yes, fully — FD interest is added to your income and taxed at your slab rate. Banks deduct 10% TDS when interest across your deposits exceeds ₹50,000 in a year (₹1 lakh for senior citizens, per the limits set in Budget 2025). TDS is not the final tax; you settle the difference when filing your return. Submit Form 15G/15H if your total income is below the taxable limit.
+  - q: "What happens if I break an FD early?"
+    a: >-
+      Premature withdrawal usually earns the rate applicable to the period the money actually stayed (not your booked rate), minus a penalty of typically 0.5–1%. If you may need the money, consider laddering several smaller FDs so you only break what you need.
+  - q: "Are FDs safe? What is the DICGC limit?"
+    a: >-
+      Bank deposits are insured by DICGC up to ₹5 lakh per depositor per bank, covering principal plus interest across all your accounts in that bank. Amounts above that depend on the bank's health, so large savers often spread deposits across banks.
+  - q: "Which is better — FD or a debt mutual fund?"
+    a: >-
+      FDs give a guaranteed rate and DICGC insurance; debt funds have market-linked returns that are usually similar or slightly better, with more liquidity and no penalty for early exit. Both are now taxed at slab rates, so for most savers the choice comes down to certainty (FD) versus flexibility (debt fund).
+  - q: "Do senior citizens get higher FD rates?"
+    a: >-
+      Yes, almost all banks pay senior citizens 0.25–0.75% extra on FDs, and some offer special schemes above that. A senior citizen earning 8% instead of 7.5% on a ₹10 lakh, 5-year FD receives roughly ₹36,000 more at maturity.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Deposit amount', '₹', 1000, 50000000, 1000, 500000, '₹1k', '₹5 Cr') }}
+    {{ m.field('r', 'Interest rate (p.a.)', '%', 1, 12, 0.05, 7, '1%', '12%') }}
+    {{ m.field('n', 'Tenure', 'years', 0.25, 10, 0.25, 5, '3 mo', '10 yrs') }}
+    <div class="field">
+      <div class="field-head"><label>Compounding</label></div>
+      <div class="seg" id="seg-comp">
+        <button data-val="4" class="on" type="button">Quarterly (banks)</button>
+        <button data-val="12" type="button">Monthly</button>
+        <button data-val="1" type="button">Yearly</button>
+      </div>
+    </div>
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Maturity amount</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Deposit</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Interest earned</div><div class="v pos" id="out-int">—</div></div>
+      <div class="stat"><div class="k">Effective yield</div><div class="v" id="out-yield">—</div><div class="sub">annualised on deposit</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Deposit value at the end of each year.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year balance table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>How FD interest actually works</h2>
+  <p>Most online examples use simple annual compounding, but Indian banks credit interest on cumulative fixed deposits <strong>quarterly</strong>. That small detail matters: ₹5 lakh at 7% for 5 years grows to about ₹7.07 lakh with quarterly compounding versus ₹7.01 lakh with annual — a ₹6,000+ difference. This calculator defaults to the quarterly method so the number matches your bank's FD receipt.</p>
+
+  <h2>Formula</h2>
+  <div class="formula">A = P × (1 + r/m)<sup>m×t</sup></div>
+  <ul>
+    <li><strong>P</strong> — deposit amount</li>
+    <li><strong>r</strong> — annual interest rate (as a decimal)</li>
+    <li><strong>m</strong> — compounding frequency per year (4 for banks)</li>
+    <li><strong>t</strong> — tenure in years</li>
+  </ul>
+
+  <h2>Worked example</h2>
+  <p>₹5,00,000 at 7% p.a. for 5 years, compounded quarterly: A = 5,00,000 × (1 + 0.07/4)<sup>20</sup> ≈ <strong>₹7,07,389</strong>. Interest earned is about ₹2.07 lakh, and the effective annual yield works out to 7.19% — slightly above the quoted 7% because of quarterly compounding.</p>
+
+  <h2>Getting more from your FDs</h2>
+  <ul>
+    <li><strong>Ladder your deposits.</strong> Split a large sum into FDs maturing in different years — you get liquidity every year and can reinvest at prevailing rates.</li>
+    <li><strong>Compare across banks.</strong> Small finance banks often pay 1–1.5% more than large banks and carry the same DICGC insurance up to ₹5 lakh.</li>
+    <li><strong>Mind the tax.</strong> Interest is taxed at your slab rate every year even if you receive it only at maturity — factor that into comparisons with other options.</li>
+    <li><strong>Senior citizens</strong> should always ask for the senior rate and consider the Senior Citizens' Savings Scheme, which typically pays more than bank FDs.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var comp = CM.seg('seg-comp');
+  function recalc() {
+    var p = CM.val('p'), r = CM.val('r') / 100, t = CM.val('n');
+    var mFreq = parseFloat(comp.value || 4);
+    if (p <= 0 || t <= 0) return;
+    var fv = p * Math.pow(1 + r / mFreq, mFreq * t);
+    var yield_ = (Math.pow(fv / p, 1 / t) - 1) * 100;
+
+    CM.set('out-fv', CM.inr(fv));
+    var w = CM.words(fv);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(p));
+    CM.set('out-int', CM.inr(fv - p));
+    CM.set('out-yield', CM.num(yield_, 2) + '%');
+
+    var labels = [], series = [], rows = [];
+    var wholeYears = Math.ceil(t);
+    for (var y = 0; y <= wholeYears; y++) {
+      var yr = Math.min(y, t);
+      var v = p * Math.pow(1 + r / mFreq, mFreq * yr);
+      labels.push('Y' + y); series.push(v);
+      if (y > 0) rows.push([y, CM.inr(v - p), CM.inr(v)]);
+    }
+    CM.lineChart('chart-growth', labels, [{ label: 'Value', data: series, role: '--s1', fill: true }]);
+    CM.table('sched-out', ['Year', 'Interest (cum.)', 'Value'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

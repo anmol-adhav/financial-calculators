@@ -1,0 +1,123 @@
+---
+layout: layouts/calculator.njk
+permalink: /emi-calculator/
+title: "EMI Calculator — Home, Car & Personal Loan EMI Online (India)"
+h1: "EMI Calculator"
+description: "Free EMI calculator for India. Calculate your monthly EMI, total interest and full amortization schedule for home, car and personal loans instantly."
+lede: "Work out the exact monthly EMI for any loan, see how much of it goes to interest, and view the complete year-by-year repayment schedule."
+updated: 2026-07-13
+related: [sip-calculator, income-tax-calculator, fd-calculator]
+faqs:
+  - q: "How is loan EMI calculated?"
+    a: >-
+      EMI is calculated with the formula EMI = P × r × (1+r)^n / ((1+r)^n − 1), where P is the loan amount, r is the monthly interest rate (annual rate divided by 12 and by 100) and n is the tenure in months. Banks in India use this same reducing-balance formula for home, car and personal loans.
+  - q: "Does a longer tenure reduce my EMI?"
+    a: >-
+      Yes, a longer tenure lowers the monthly EMI because the principal is spread over more months, but it significantly increases the total interest you pay. A ₹30 lakh loan at 8.5% costs about ₹9.6 lakh in interest over 10 years, but roughly ₹32.5 lakh over 25 years.
+  - q: "What is the difference between flat rate and reducing balance rate?"
+    a: >-
+      A reducing-balance rate charges interest only on the outstanding principal, which falls every month — this is how home loans work and what this calculator uses. A flat rate charges interest on the full original amount for the entire tenure, so a 10% flat rate is roughly equivalent to an 18–19% reducing-balance rate. Always compare loans on the reducing-balance basis.
+  - q: "Does prepaying a loan reduce EMI or tenure?"
+    a: >-
+      When you make a part-prepayment, most banks let you choose: keep the same EMI and shorten the tenure, or keep the tenure and reduce the EMI. Keeping the EMI unchanged and shortening the tenure saves far more interest, because the principal drops earlier in the schedule when the interest component is highest.
+  - q: "Is there a penalty for prepaying a home loan in India?"
+    a: >-
+      For floating-rate home loans taken by individuals, the RBI has barred banks and NBFCs from charging prepayment or foreclosure penalties. Fixed-rate loans and business loans may still carry a prepayment charge, typically 2–4% of the amount prepaid, so check your loan agreement.
+  - q: "What percentage of income should my EMI be?"
+    a: >-
+      Lenders generally cap total EMIs at 40–50% of net monthly income, but a comfortable rule of thumb is to keep all EMIs combined under 40%, and your home loan EMI alone under 30–35% of take-home pay, so that savings and emergencies are not squeezed.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Loan amount', '₹', 50000, 100000000, 50000, 3000000, '₹50k', '₹10 Cr') }}
+    {{ m.field('r', 'Interest rate (p.a.)', '%', 1, 20, 0.05, 8.5, '1%', '20%') }}
+    {{ m.field('n', 'Tenure', 'years', 1, 30, 1, 20, '1 yr', '30 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Monthly EMI</div><div class="v" id="out-emi">—</div><div class="sub" id="out-emi-sub"></div></div>
+      <div class="stat"><div class="k">Principal</div><div class="v" id="out-p">—</div></div>
+      <div class="stat"><div class="k">Total interest</div><div class="v" id="out-int">—</div></div>
+      <div class="stat"><div class="k">Total payment</div><div class="v" id="out-total">—</div></div>
+    </div>
+    <div class="chart-box" style="height:180px"><canvas id="chart-split"></canvas></div>
+    <div class="chart-box"><canvas id="chart-bal"></canvas></div>
+    <p class="chart-note">Outstanding balance at the end of each year.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Amortization schedule (year by year)</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>What is an EMI?</h2>
+  <p>An EMI (Equated Monthly Instalment) is the fixed amount you pay your lender every month until a loan is fully repaid. Each EMI has two parts: interest on the outstanding balance, and repayment of principal. In the early years the interest component dominates; as the balance falls, more of each EMI goes toward principal. This calculator uses the standard reducing-balance method used by all Indian banks, NBFCs and housing finance companies.</p>
+
+  <h2>EMI formula</h2>
+  <div class="formula">EMI = P × r × (1 + r)<sup>n</sup> / ((1 + r)<sup>n</sup> − 1)</div>
+  <ul>
+    <li><strong>P</strong> — loan amount (principal)</li>
+    <li><strong>r</strong> — monthly interest rate = annual rate ÷ 12 ÷ 100</li>
+    <li><strong>n</strong> — tenure in months</li>
+  </ul>
+
+  <h2>Worked example</h2>
+  <p>Suppose you take a home loan of ₹30,00,000 at 8.5% p.a. for 20 years. Here r = 8.5 ÷ 12 ÷ 100 = 0.007083 and n = 240 months. The formula gives an EMI of about <strong>₹26,035</strong>. Over 20 years you pay roughly ₹62.5 lakh in total, of which about ₹32.5 lakh is interest — more than the original loan itself. That is why even a small rate difference or a shorter tenure matters so much.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Enter the loan amount, annual interest rate and tenure — results update instantly.</li>
+    <li>The doughnut shows how your total repayment splits between principal and interest.</li>
+    <li>Open the amortization schedule to see interest, principal and balance for every year.</li>
+    <li>Use <em>Copy link</em> to share your exact calculation with anyone.</li>
+  </ul>
+
+  <h2>Tips to reduce your interest burden</h2>
+  <ul>
+    <li><strong>Prepay early.</strong> Prepayments in the first third of the tenure save the most interest, because that is when the interest component of each EMI is highest.</li>
+    <li><strong>Choose tenure carefully.</strong> Stretching from 20 to 25 years cuts the EMI only modestly but adds several lakh in interest on a typical home loan.</li>
+    <li><strong>Negotiate or refinance.</strong> Even a 0.25% lower rate on a ₹30 lakh, 20-year loan saves roughly ₹1.1 lakh over the tenure. If your bank will not match market rates, a balance transfer may be worth it.</li>
+    <li><strong>One extra EMI a year</strong> paid as prepayment can shorten a 20-year loan by about 3 years.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), rate = CM.val('r'), yrs = CM.val('n');
+    var r = rate / 1200, n = Math.round(yrs * 12);
+    if (p <= 0 || n <= 0) return;
+    var emi = r === 0 ? p / n : p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    var total = emi * n, totInt = total - p;
+
+    CM.set('out-emi', CM.inr(emi));
+    CM.set('out-emi-sub', 'per month for ' + CM.num(yrs, 0) + ' years');
+    CM.set('out-p', CM.inr(p));
+    CM.set('out-int', CM.inr(totInt));
+    CM.set('out-total', CM.inr(total));
+
+    CM.doughnut('chart-split', ['Principal', 'Interest'], [p, totInt], ['--s1', '--s3']);
+
+    var bal = p, labels = ['Y0'], balSeries = [p], rows = [];
+    var yInt = 0, yPr = 0, year = 1;
+    for (var mth = 1; mth <= n; mth++) {
+      var i = bal * r, pr = emi - i;
+      bal = Math.max(0, bal - pr);
+      yInt += i; yPr += pr;
+      if (mth % 12 === 0 || mth === n) {
+        labels.push('Y' + year); balSeries.push(bal);
+        rows.push([year, CM.inr(yPr), CM.inr(yInt), CM.inr(yPr + yInt), CM.inr(bal)]);
+        yInt = 0; yPr = 0; year++;
+      }
+    }
+    CM.lineChart('chart-bal', labels, [{ label: 'Outstanding balance', data: balSeries, role: '--s1', fill: true }]);
+    CM.table('sched-out', ['Year', 'Principal paid', 'Interest paid', 'Total payment', 'Balance'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

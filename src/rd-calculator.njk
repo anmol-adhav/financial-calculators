@@ -1,0 +1,108 @@
+---
+layout: layouts/calculator.njk
+permalink: /rd-calculator/
+title: "RD Calculator — Recurring Deposit Maturity Calculator (India)"
+h1: "RD Calculator"
+description: "Calculate recurring deposit maturity value with quarterly compounding, the way Indian banks and the post office compute RD interest."
+lede: "Find the maturity value of a monthly recurring deposit, computed the way banks actually credit RD interest — quarterly compounding on each instalment."
+updated: 2026-07-13
+related: [fd-calculator, sip-calculator, ppf-calculator]
+faqs:
+  - q: "How is RD interest calculated?"
+    a: >-
+      Each monthly instalment earns interest compounded quarterly for the time it stays deposited. The first instalment compounds for the full tenure, the last for just one month, and the maturity value is the sum of all instalments with their respective compounding. This calculator simulates exactly that.
+  - q: "Is an RD better than a SIP?"
+    a: >-
+      They serve different purposes. An RD gives a guaranteed, fixed rate (currently around 6.5–7.5%) and suits short-term goals where certainty matters. A SIP in an equity fund targets higher long-term returns (historically 11–14%) but can lose value in any given year. For goals under 3 years, RDs are usually the safer choice; for 7+ years, equity SIPs have historically won comfortably.
+  - q: "Is RD interest taxable? Is there TDS?"
+    a: >-
+      Yes — RD interest is fully taxable at your slab rate, and banks deduct TDS on RD interest just like FD interest once your total interest crosses the threshold (₹50,000 a year at one bank, ₹1 lakh for senior citizens). Post office RDs have no TDS but the interest is still taxable.
+  - q: "What happens if I miss an RD instalment?"
+    a: >-
+      Banks charge a small penalty (often ₹1–2 per ₹100 per month of delay) and repeated defaults can lead to the RD being closed. Post office RDs allow revival within a limited period. If your income is irregular, a flexible/variable RD product or simply parking surplus into FDs may suit better.
+  - q: "Can I take a loan against my RD?"
+    a: >-
+      Yes, most banks lend up to 80–90% of the balance in your RD at about 1–2% above the RD rate, which is usually cheaper than a personal loan and does not require breaking the deposit.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Monthly deposit', '₹', 100, 1000000, 100, 5000, '₹100', '₹10L') }}
+    {{ m.field('r', 'Interest rate (p.a.)', '%', 1, 12, 0.05, 7, '1%', '12%') }}
+    {{ m.field('n', 'Tenure', 'months', 3, 120, 3, 60, '3 mo', '120 mo') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Maturity amount</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Total deposited</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Interest earned</div><div class="v pos" id="out-int">—</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Balance versus total deposited over the tenure.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year balance table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>What is a recurring deposit?</h2>
+  <p>A recurring deposit (RD) is a bank or post-office product where you deposit a fixed amount every month for a chosen tenure — from 6 months to 10 years — and earn a fixed interest rate, credited with quarterly compounding. It is essentially a disciplined FD: the rate certainty of a fixed deposit with the monthly habit of a SIP, which makes it popular for short-term goals like a vacation, gadget, insurance premium or emergency-fund building.</p>
+
+  <h2>How the maturity value is computed</h2>
+  <p>Banks treat every instalment as its own small deposit that earns quarterly-compounded interest for the months it remains with the bank:</p>
+  <div class="formula">Maturity = Σ P × (1 + r/4)<sup>4 × t<sub>k</sub>/12</sup> &nbsp; for each instalment k</div>
+  <p>where t<sub>k</sub> is the number of months instalment k stays deposited. The first instalment earns the most, the last earns interest for just one month — so an RD's overall yield is a little over half the headline rate applied to your total deposits.</p>
+
+  <h2>Worked example</h2>
+  <p>₹5,000 a month for 60 months at 7% p.a.: you deposit ₹3,00,000 in total, and maturity comes to about <strong>₹3.59 lakh</strong> — roughly ₹59,000 of interest. Note how this compares with an FD: the same ₹3 lakh invested upfront for 5 years would earn about ₹1.24 lakh, because all the money compounds for the full period.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Enter your monthly deposit, the bank's RD rate and tenure in months.</li>
+    <li>The chart shows your balance pulling ahead of your cumulative deposits as interest accrues.</li>
+    <li>Comparing against mutual funds? Put the same monthly amount into the <a href="/sip-calculator/">SIP calculator</a>.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), r = CM.val('r') / 100, months = Math.round(CM.val('n'));
+    if (p <= 0 || months <= 0) return;
+
+    var fv = 0;
+    for (var k = 1; k <= months; k++) {
+      var tk = months - k + 1; // months this instalment stays deposited
+      fv += p * Math.pow(1 + r / 4, 4 * tk / 12);
+    }
+    var inv = p * months;
+    CM.set('out-fv', CM.inr(fv));
+    var w = CM.words(fv);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(inv));
+    CM.set('out-int', CM.inr(fv - inv));
+
+    var labels = [], valSeries = [], invSeries = [], rows = [];
+    for (var mEnd = 12; mEnd <= months || mEnd - 12 < months; mEnd += 12) {
+      var upto = Math.min(mEnd, months);
+      var v = 0;
+      for (var j = 1; j <= upto; j++) v += p * Math.pow(1 + r / 4, 4 * (upto - j + 1) / 12);
+      var y = Math.ceil(upto / 12);
+      labels.push('Y' + y); valSeries.push(v); invSeries.push(p * upto);
+      rows.push([y, CM.inr(p * upto), CM.inr(v - p * upto), CM.inr(v)]);
+      if (upto === months) break;
+    }
+    CM.lineChart('chart-growth', labels, [
+      { label: 'Balance', data: valSeries, role: '--s1', fill: true },
+      { label: 'Deposited', data: invSeries, role: '--s2' }
+    ]);
+    CM.table('sched-out', ['Year', 'Deposited', 'Interest', 'Balance'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

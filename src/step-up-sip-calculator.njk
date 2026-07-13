@@ -1,0 +1,109 @@
+---
+layout: layouts/calculator.njk
+permalink: /step-up-sip-calculator/
+title: "Step-Up SIP Calculator — Annual Increase SIP Returns (India)"
+h1: "Step-Up SIP Calculator"
+description: "Calculate mutual fund returns when you increase your SIP amount every year. Compare a step-up SIP against a flat SIP and see the year-wise difference."
+lede: "See what happens when your SIP grows with your salary — even a 10% annual step-up can roughly double your final corpus over long periods."
+updated: 2026-07-13
+related: [sip-calculator, lumpsum-calculator, fire-calculator]
+faqs:
+  - q: "What is a step-up (top-up) SIP?"
+    a: >-
+      A step-up SIP automatically increases your monthly instalment at a fixed interval, usually once a year, by a percentage or fixed amount you choose. Most fund houses and platforms let you set this when starting the SIP, so your investment keeps pace with salary increments without any manual effort.
+  - q: "How much difference does a 10% annual step-up make?"
+    a: >-
+      A large one. A flat ₹10,000 SIP at 12% for 20 years grows to about ₹92 lakh, while the same SIP stepped up 10% every year reaches roughly ₹1.85 crore — about twice the corpus — because your contributions compound from a bigger base each year.
+  - q: "Is a step-up SIP better than starting with a bigger SIP?"
+    a: >-
+      If you can afford the bigger amount today, starting bigger is mathematically better because money invested earlier compounds longer. The step-up is for the realistic case where your surplus grows with your income — it commits your future increments in advance, which is easier than finding a large amount now.
+  - q: "Can I add a step-up to an existing SIP?"
+    a: >-
+      Many platforms do not allow editing an existing SIP's step-up. The common workaround is to either register a fresh SIP for the incremental amount each year, or cancel and re-register the SIP with the step-up facility enabled. Neither affects your existing units.
+  - q: "What step-up percentage should I choose?"
+    a: >-
+      Match it to your expected salary growth, typically 5–10% a year in India. The key is sustainability: a 10% step-up doubles your instalment in about 7 years, so make sure the committed amounts remain comfortable alongside your other goals.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Starting monthly SIP', '₹', 500, 1000000, 500, 10000, '₹500', '₹10L') }}
+    {{ m.field('s', 'Annual step-up', '%', 0, 25, 1, 10, '0%', '25%') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 1, 30, 0.5, 12, '1%', '30%') }}
+    {{ m.field('n', 'Investment period', 'years', 1, 40, 1, 15, '1 yr', '40 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Maturity value</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Invested</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Wealth gained</div><div class="v pos" id="out-gain">—</div></div>
+      <div class="stat"><div class="k">vs flat SIP</div><div class="v" id="out-extra">—</div><div class="sub">extra corpus from stepping up</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Step-up SIP corpus compared with keeping the SIP flat.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year growth table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>Why step up your SIP?</h2>
+  <p>Most people start a SIP they can afford today and never revise it, even as their salary grows 8–10% a year. A step-up SIP fixes that leak: the instalment automatically rises every year, so your investment rate keeps pace with your income. Because the increases arrive early in your investing life and then compound for decades, the effect on the final corpus is far larger than the extra money you put in.</p>
+
+  <h2>How the calculation works</h2>
+  <p>The calculator simulates the SIP month by month. Each month's instalment earns the monthly return until the end of the period, and at the end of every 12 months the instalment increases by your chosen step-up percentage:</p>
+  <div class="formula">Instalment in year k = P × (1 + step)<sup>k−1</sup></div>
+  <p>The flat-SIP comparison line uses the same return with no step-up, so the gap you see is purely the effect of increasing your contributions.</p>
+
+  <h2>Worked example</h2>
+  <p>Start at ₹10,000 a month, step up 10% yearly, 12% p.a. return, 20 years. You invest about ₹68.7 lakh in total (versus ₹24 lakh flat), and the corpus reaches roughly <strong>₹1.85 crore</strong> versus ₹92 lakh for the flat SIP. The step-up contributed ₹44.7 lakh more of your money but produced about ₹93 lakh more corpus — the difference is compounding on the earlier, larger instalments.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Set your starting SIP, annual step-up percentage, expected return and period.</li>
+    <li>The "vs flat SIP" tile shows exactly how much extra corpus the step-up creates.</li>
+    <li>Open the table to see your instalment, cumulative investment and value for each year.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p0 = CM.val('p'), step = CM.val('s') / 100, rate = CM.val('r'), yrs = CM.val('n');
+    var i = rate / 1200, n = Math.round(yrs * 12);
+    if (p0 <= 0 || n <= 0) return;
+
+    var bal = 0, flatBal = 0, inv = 0, p = p0;
+    var labels = [], valSeries = [], flatSeries = [], rows = [];
+    for (var mth = 1; mth <= n; mth++) {
+      bal = (bal + p) * (1 + i);
+      flatBal = (flatBal + p0) * (1 + i);
+      inv += p;
+      if (mth % 12 === 0 || mth === n) {
+        var y = Math.ceil(mth / 12);
+        labels.push('Y' + y); valSeries.push(bal); flatSeries.push(flatBal);
+        rows.push([y, CM.inr(p), CM.inr(inv), CM.inr(bal)]);
+        if (mth % 12 === 0) p = p * (1 + step);
+      }
+    }
+    CM.set('out-fv', CM.inr(bal));
+    var w = CM.words(bal);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(inv));
+    CM.set('out-gain', CM.inr(bal - inv));
+    CM.set('out-extra', '+' + CM.compact(bal - flatBal));
+
+    CM.lineChart('chart-growth', labels, [
+      { label: 'Step-up SIP', data: valSeries, role: '--s1', fill: true },
+      { label: 'Flat SIP', data: flatSeries, role: '--s2' }
+    ]);
+    CM.table('sched-out', ['Year', 'Monthly SIP', 'Invested (cum.)', 'Value'], rows);
+  }
+  CM.bind(['p', 's', 'r', 'n'], recalc);
+});
+</script>

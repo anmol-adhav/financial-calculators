@@ -1,0 +1,22 @@
+---
+layout: layouts/page.njk
+permalink: /about/
+title: "About CalculateMoney"
+h1: "About CalculateMoney"
+description: "Who builds CalculateMoney, how the calculators work, and the principles behind the site."
+---
+<p>CalculateMoney is a collection of free financial calculators built for India, created and maintained by <strong>{{ site.author }}</strong>. The site exists because most calculator pages online are either inaccurate for Indian products (using annual compounding for FDs, ignoring the Section 87A rebate, US-style tax slabs) or buried under intrusive ads and sign-up walls.</p>
+
+<h2>Principles</h2>
+<ul>
+  <li><strong>Indian methods, not approximations.</strong> FDs compound quarterly, RD interest is computed per instalment, tax follows the Finance Act — the same maths your bank or CA would use.</li>
+  <li><strong>Assumptions in the open.</strong> Every calculator states its formula and its assumptions on the page, so you can judge the output rather than trust a black box.</li>
+  <li><strong>No sign-up, no data collection by the tools.</strong> Calculations run entirely in your browser. Nothing you type is sent to a server.</li>
+  <li><strong>Education, not advice.</strong> These are planning tools. They cannot know your full situation, and they are no substitute for a qualified financial or tax professional.</li>
+</ul>
+
+<h2>How the site is built</h2>
+<p>CalculateMoney is open source — a fast, static site with no trackers in the calculators and no framework bloat. You can inspect every formula in the <a href="{{ site.github }}">GitHub repository</a>, and corrections are very welcome.</p>
+
+<h2>Corrections</h2>
+<p>Financial rules in India change every budget. If you spot a rate, slab or rule that has moved on, please <a href="/contact/">write in</a> — fixing errors quickly matters more to this site than anything else.</p>

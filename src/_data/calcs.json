@@ -1,0 +1,86 @@
+[
+  {
+    "slug": "emi-calculator",
+    "name": "EMI Calculator",
+    "icon": "🏠",
+    "cat": "Loans",
+    "short": "Monthly EMI, total interest and full amortization schedule for home, car and personal loans."
+  },
+  {
+    "slug": "sip-calculator",
+    "name": "SIP Calculator",
+    "icon": "📈",
+    "cat": "Investments",
+    "short": "Future value of monthly mutual fund SIPs with year-by-year growth."
+  },
+  {
+    "slug": "step-up-sip-calculator",
+    "name": "Step-Up SIP Calculator",
+    "icon": "🪜",
+    "cat": "Investments",
+    "short": "SIP returns when you increase your investment every year."
+  },
+  {
+    "slug": "lumpsum-calculator",
+    "name": "Lumpsum Calculator",
+    "icon": "💰",
+    "cat": "Investments",
+    "short": "One-time investment growth with the power of compounding."
+  },
+  {
+    "slug": "income-tax-calculator",
+    "name": "Income Tax Calculator",
+    "icon": "🧾",
+    "cat": "Tax",
+    "short": "Old vs new regime tax for FY 2025-26, with rebate, surcharge and cess."
+  },
+  {
+    "slug": "gst-calculator",
+    "name": "GST Calculator",
+    "icon": "🧮",
+    "cat": "Tax",
+    "short": "Add or remove GST with CGST/SGST split at current 2025 slab rates."
+  },
+  {
+    "slug": "fd-calculator",
+    "name": "FD Calculator",
+    "icon": "🏦",
+    "cat": "Deposits",
+    "short": "Fixed deposit maturity value with quarterly compounding."
+  },
+  {
+    "slug": "rd-calculator",
+    "name": "RD Calculator",
+    "icon": "📅",
+    "cat": "Deposits",
+    "short": "Recurring deposit maturity value the way banks actually calculate it."
+  },
+  {
+    "slug": "ppf-calculator",
+    "name": "PPF Calculator",
+    "icon": "🛡️",
+    "cat": "Deposits",
+    "short": "Public Provident Fund maturity with year-wise balance over 15+ years."
+  },
+  {
+    "slug": "fire-calculator",
+    "name": "FIRE Calculator",
+    "icon": "🔥",
+    "cat": "Retirement",
+    "short": "The corpus you need to retire early in India, adjusted for inflation."
+  },
+  {
+    "slug": "swp-calculator",
+    "name": "SWP Calculator",
+    "icon": "💸",
+    "cat": "Retirement",
+    "short": "How long your corpus lasts with a systematic withdrawal plan."
+  },
+  {
+    "slug": "inflation-calculator",
+    "name": "Inflation Calculator",
+    "icon": "📉",
+    "cat": "Planning",
+    "short": "What today's money will be worth — and cost — in the future."
+  }
+]

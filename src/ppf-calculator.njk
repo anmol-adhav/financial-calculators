@@ -1,0 +1,100 @@
+---
+layout: layouts/calculator.njk
+permalink: /ppf-calculator/
+title: "PPF Calculator — Public Provident Fund Maturity Calculator"
+h1: "PPF Calculator"
+description: "Calculate PPF maturity value at the current 7.1% rate with year-wise balance. Tax-free, government-backed returns over 15 years and beyond."
+lede: "See what your yearly PPF contributions grow to over 15 years (or longer with extensions) — completely tax-free and government guaranteed."
+updated: 2026-07-13
+related: [fd-calculator, sip-calculator, fire-calculator]
+faqs:
+  - q: "What is the current PPF interest rate?"
+    a: >-
+      The PPF rate is set by the government every quarter and has been 7.1% p.a. since April 2020. Interest is compounded annually and credited at the end of each financial year. This calculator defaults to 7.1% but lets you change the rate to model future scenarios.
+  - q: "Is PPF really tax-free?"
+    a: >-
+      Yes — PPF enjoys exempt-exempt-exempt (EEE) status: the contribution qualifies for the Section 80C deduction up to ₹1.5 lakh (old tax regime), the interest earned is tax-free, and the maturity amount is tax-free. No other widely available product in India is tax-free at all three stages.
+  - q: "How much can I invest in PPF each year?"
+    a: >-
+      Minimum ₹500 and maximum ₹1.5 lakh per financial year, in one or more instalments. Depositing before the 5th of April (or of each month) earns interest for that month too, since interest is calculated on the lowest balance between the 5th and month-end. The most efficient pattern is ₹1.5 lakh before April 5 each year.
+  - q: "What happens after 15 years?"
+    a: >-
+      You can withdraw everything tax-free, or extend the account in 5-year blocks — either with fresh contributions or without. Extensions keep earning the prevailing rate, and many savers run PPF for 25–30 years as the debt portion of their retirement portfolio.
+  - q: "Can I withdraw from PPF before 15 years?"
+    a: >-
+      Partial withdrawals are allowed from the 7th financial year (up to 50% of the balance at the end of the 4th preceding year). Loans against the balance are available from years 3 to 6. Premature closure is permitted after 5 years only for specific reasons (medical treatment, higher education, NRI status change) with a 1% interest penalty.
+  - q: "Is PPF better than an equity SIP?"
+    a: >-
+      They play different roles. PPF is a guaranteed, tax-free 7.1% — unbeatable for the safe part of your portfolio. Equity SIPs target higher returns with volatility. A common approach is to fill PPF's ₹1.5 lakh limit for stability and invest beyond that in equity funds for growth.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Yearly investment', '₹', 500, 150000, 500, 150000, '₹500', '₹1.5L (max)') }}
+    {{ m.field('r', 'Interest rate (p.a.)', '%', 4, 12, 0.1, 7.1, '4%', '12%') }}
+    {{ m.field('n', 'Duration', 'years', 15, 50, 1, 15, '15 yrs', '50 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Maturity value</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Total invested</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Tax-free interest</div><div class="v pos" id="out-int">—</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Balance versus contributions at the end of each financial year.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year balance table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>Why PPF remains special</h2>
+  <p>The Public Provident Fund is a 15-year government savings scheme, and the only mainstream product in India that is tax-exempt at every stage — investment (Section 80C, old regime), interest and maturity. Backed by a sovereign guarantee and protected from attachment by court decree, it is the bedrock of most Indian retirement plans. At 7.1% tax-free, its pre-tax equivalent for someone in the 30% bracket is over 10% — with zero risk.</p>
+
+  <h2>How interest is credited</h2>
+  <p>Interest is calculated monthly on the lowest balance between the 5th and the end of the month, and credited once a year on March 31. This calculator assumes you invest your full yearly amount at the start of each year — the standard assumption, and the smartest way to actually invest (deposit before April 5):</p>
+  <div class="formula">Balance<sub>year</sub> = (Balance<sub>year−1</sub> + Deposit) × (1 + r)</div>
+
+  <h2>Worked example</h2>
+  <p>₹1,50,000 invested at the start of every year at 7.1% for 15 years: total contributions of ₹22.5 lakh grow to about <strong>₹40.7 lakh</strong>, of which roughly ₹18.2 lakh is tax-free interest. Extend the account (with contributions) to 25 years and the balance crosses ₹1.03 crore — the extension years earn interest on a much larger base.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Set your yearly deposit (capped at the ₹1.5 lakh statutory limit), rate and duration.</li>
+    <li>Durations beyond 15 years model the 5-year extension blocks with continued contributions.</li>
+    <li>The rate defaults to the current 7.1%; adjust it to stress-test future rate changes.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), r = CM.val('r') / 100, yrs = Math.round(CM.val('n'));
+    if (p <= 0 || yrs <= 0) return;
+    var labels = [], valSeries = [], invSeries = [], rows = [];
+    var bal = 0;
+    for (var y = 1; y <= yrs; y++) {
+      bal = (bal + p) * (1 + r);
+      labels.push('Y' + y); valSeries.push(bal); invSeries.push(p * y);
+      rows.push([y, CM.inr(p * y), CM.inr(bal - p * y), CM.inr(bal)]);
+    }
+    CM.set('out-fv', CM.inr(bal));
+    var w = CM.words(bal);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(p * yrs));
+    CM.set('out-int', CM.inr(bal - p * yrs));
+
+    CM.lineChart('chart-growth', labels, [
+      { label: 'Balance', data: valSeries, role: '--s1', fill: true },
+      { label: 'Contributed', data: invSeries, role: '--s2' }
+    ]);
+    CM.table('sched-out', ['Year', 'Contributed', 'Interest (cum.)', 'Balance'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

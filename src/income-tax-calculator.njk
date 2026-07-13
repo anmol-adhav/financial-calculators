@@ -1,0 +1,192 @@
+---
+layout: layouts/calculator.njk
+permalink: /income-tax-calculator/
+title: "Income Tax Calculator FY 2025-26 — New vs Old Regime (India)"
+h1: "Income Tax Calculator (FY 2025-26)"
+description: "Calculate income tax for FY 2025-26 (AY 2026-27) under both new and old regimes — with standard deduction, Section 87A rebate, surcharge, marginal relief and cess — and see which regime saves you more."
+lede: "Enter your income once and see your tax under both the new and old regimes — including the ₹12 lakh rebate, standard deduction, surcharge and cess — with a clear verdict on which regime wins for you."
+updated: 2026-07-13
+related: [gst-calculator, sip-calculator, ppf-calculator]
+faqs:
+  - q: "Is income up to ₹12 lakh really tax-free in the new regime?"
+    a: >-
+      Yes, for FY 2025-26 the Section 87A rebate makes tax zero when your taxable income (after the ₹75,000 standard deduction for salaried) is up to ₹12 lakh — so a salaried person earning up to ₹12.75 lakh pays no tax. Above that, marginal relief ensures a small overshoot doesn't create a tax cliff. The rebate does not apply to special-rate income like capital gains.
+  - q: "Which regime is better — new or old?"
+    a: >-
+      It depends entirely on your deductions. The new regime has lower rates but allows almost no deductions; the old regime has higher rates but permits 80C, 80D, HRA, home-loan interest and more. As a rough guide for FY 2025-26, the old regime only wins if your total deductions (beyond standard deduction) are very large — typically over ₹4–5 lakh for incomes above ₹15 lakh. This calculator does the exact comparison for your numbers.
+  - q: "What is the standard deduction for FY 2025-26?"
+    a: >-
+      ₹75,000 in the new regime and ₹50,000 in the old regime, available to salaried employees and pensioners automatically — no bills or proofs needed. It does not apply to pure business or professional income.
+  - q: "Which deductions are allowed in the new regime?"
+    a: >-
+      Very few: the ₹75,000 standard deduction, employer's NPS contribution under 80CCD(2), and a handful of others like Agniveer corpus contributions. Popular deductions — 80C (PPF, ELSS, LIC), 80D health insurance, HRA, LTA and home-loan interest on self-occupied property — are only available in the old regime.
+  - q: "What is marginal relief?"
+    a: >-
+      A safeguard so that earning slightly more than a threshold never leaves you with less money after tax. It applies just above the ₹12 lakh rebate limit in the new regime, and at each surcharge threshold (₹50 lakh, ₹1 crore and up) in both regimes. This calculator applies both automatically.
+  - q: "Do I need to choose a regime every year?"
+    a: >-
+      The new regime is the default. Salaried taxpayers can switch between regimes every year while filing their return (tell your employer your choice for TDS too). Taxpayers with business income can switch to the old regime only once, so choose carefully.
+  - q: "Does this calculator cover capital gains or freelance income?"
+    a: >-
+      No — it computes tax on normal slab-rate income such as salary, pension, interest and rent. Capital gains on shares and mutual funds are taxed at special rates outside the slabs, and business income involves presumptive schemes and expenses beyond this tool's scope.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('inc', 'Gross annual income', '₹', 100000, 100000000, 10000, 1500000, '₹1L', '₹10 Cr') }}
+    <div class="field">
+      <div class="field-head"><label>Income type</label></div>
+      <div class="seg" id="seg-sal">
+        <button data-val="1" class="on" type="button">Salaried / pensioner</button>
+        <button data-val="0" type="button">Other income</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-head"><label>Age (affects old regime only)</label></div>
+      <div class="seg" id="seg-age">
+        <button data-val="0" class="on" type="button">Below 60</button>
+        <button data-val="1" type="button">60–79</button>
+        <button data-val="2" type="button">80+</button>
+      </div>
+    </div>
+    {{ m.field('ded', 'Old-regime deductions (80C, 80D, HRA, home-loan interest…)', '₹', 0, 10000000, 5000, 200000, '₹0', '₹1 Cr') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Your tax (better regime)</div><div class="v" id="out-best">—</div><div class="sub" id="out-verdict"></div></div>
+      <div class="stat"><div class="k">New regime</div><div class="v" id="out-new">—</div><div class="sub" id="out-new-sub"></div></div>
+      <div class="stat"><div class="k">Old regime</div><div class="v" id="out-old">—</div><div class="sub" id="out-old-sub"></div></div>
+      <div class="stat"><div class="k">You save</div><div class="v pos" id="out-save">—</div><div class="sub">by choosing the better regime</div></div>
+    </div>
+    <div class="chart-box" style="height:200px"><canvas id="chart-cmp"></canvas></div>
+    <p class="chart-note">Total tax including surcharge and 4% cess, FY 2025-26 (AY 2026-27).</p>
+  </div>
+</div>
+
+<article class="article">
+  <h2>New regime slabs — FY 2025-26</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Taxable income</th><th>Rate</th></tr></thead>
+    <tbody>
+      <tr><td>Up to ₹4,00,000</td><td>Nil</td></tr>
+      <tr><td>₹4,00,001 – ₹8,00,000</td><td>5%</td></tr>
+      <tr><td>₹8,00,001 – ₹12,00,000</td><td>10%</td></tr>
+      <tr><td>₹12,00,001 – ₹16,00,000</td><td>15%</td></tr>
+      <tr><td>₹16,00,001 – ₹20,00,000</td><td>20%</td></tr>
+      <tr><td>₹20,00,001 – ₹24,00,000</td><td>25%</td></tr>
+      <tr><td>Above ₹24,00,000</td><td>30%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Standard deduction ₹75,000 (salaried/pensioners). Section 87A rebate wipes out tax when taxable income is up to ₹12,00,000, with marginal relief just above it. Surcharge applies from ₹50 lakh (capped at 25% in this regime), and 4% health & education cess applies on the total.</p>
+
+  <h2>Old regime slabs — FY 2025-26</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Taxable income</th><th>Below 60</th><th>60–79</th><th>80+</th></tr></thead>
+    <tbody>
+      <tr><td>Up to ₹2,50,000</td><td>Nil</td><td>Nil</td><td>Nil</td></tr>
+      <tr><td>₹2,50,001 – ₹3,00,000</td><td>5%</td><td>Nil</td><td>Nil</td></tr>
+      <tr><td>₹3,00,001 – ₹5,00,000</td><td>5%</td><td>5%</td><td>Nil</td></tr>
+      <tr><td>₹5,00,001 – ₹10,00,000</td><td>20%</td><td>20%</td><td>20%</td></tr>
+      <tr><td>Above ₹10,00,000</td><td>30%</td><td>30%</td><td>30%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Standard deduction ₹50,000 (salaried), plus the full menu of deductions: 80C up to ₹1.5 lakh, 80D health insurance, HRA exemption, home-loan interest up to ₹2 lakh, 80CCD(1B) NPS ₹50,000 and others. Section 87A rebate (up to ₹12,500) makes tax zero when taxable income is within ₹5 lakh.</p>
+
+  <h2>Worked example</h2>
+  <p>Salaried, ₹15,00,000 gross, ₹2,00,000 of old-regime deductions. <strong>New regime:</strong> taxable ₹14.25 lakh → slab tax ₹93,750 + 4% cess = <strong>₹97,500</strong>. <strong>Old regime:</strong> taxable ₹12.5 lakh → slab tax ₹1,87,500 + cess = ₹1,95,000. The new regime wins by ₹97,500 — and the old regime would need deductions of well over ₹4 lakh (besides standard deduction) to catch up at this income.</p>
+
+  <h2>Assumptions and scope</h2>
+  <ul>
+    <li>Applies FY 2025-26 (AY 2026-27) rules as enacted by the Finance Act 2025 — verify against the latest Finance Act if you are reading this in a later year.</li>
+    <li>Income is treated as normal slab-rate income (salary, pension, interest, rent). Capital gains taxed at special rates are outside scope.</li>
+    <li>The deductions field is applied in the old regime only, reflecting the common case; new-regime-eligible items like employer NPS (80CCD(2)) are not modelled separately.</li>
+    <li>Surcharge (10% / 15% / 25% / 37%, capped at 25% in the new regime) and marginal relief at every threshold are applied automatically, followed by 4% cess.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function slabTax(ti, slabs) {
+    var tax = 0, prev = 0;
+    for (var s = 0; s < slabs.length; s++) {
+      var upper = Math.min(ti, slabs[s][0]);
+      if (upper > prev) tax += (upper - prev) * slabs[s][1];
+      prev = slabs[s][0];
+      if (ti <= slabs[s][0]) break;
+    }
+    return tax;
+  }
+
+  var NEW_SLABS = [[400000, 0], [800000, 0.05], [1200000, 0.10], [1600000, 0.15], [2000000, 0.20], [2400000, 0.25], [Infinity, 0.30]];
+  function oldSlabs(age) {
+    var basic = age === 2 ? 500000 : age === 1 ? 300000 : 250000;
+    return [[basic, 0], [500000, 0.05], [1000000, 0.20], [Infinity, 0.30]];
+  }
+  var SUR_NEW = [[5000000, 0.10], [10000000, 0.15], [20000000, 0.25]];
+  var SUR_OLD = [[5000000, 0.10], [10000000, 0.15], [20000000, 0.25], [50000000, 0.37]];
+
+  // tax after rebate, before surcharge/cess
+  function baseTax(ti, isNew, age) {
+    var tax = slabTax(ti, isNew ? NEW_SLABS : oldSlabs(age));
+    if (isNew) {
+      // 87A rebate up to 12L, then marginal relief: pay no more than the income above 12L
+      if (ti <= 1200000) tax = 0;
+      else tax = Math.min(tax, ti - 1200000);
+    } else {
+      if (ti <= 500000) tax = Math.max(0, tax - 12500);
+    }
+    return tax;
+  }
+
+  // + surcharge with marginal relief (recursive cap at each threshold)
+  function taxWithSurcharge(ti, isNew, age) {
+    var tax = baseTax(ti, isNew, age);
+    var brackets = isNew ? SUR_NEW : SUR_OLD;
+    var rate = 0, th = 0;
+    for (var b = 0; b < brackets.length; b++) if (ti > brackets[b][0]) { rate = brackets[b][1]; th = brackets[b][0]; }
+    var total = tax * (1 + rate);
+    if (th > 0) total = Math.min(total, taxWithSurcharge(th, isNew, age) + (ti - th));
+    return total;
+  }
+
+  function totalTax(gross, isNew, age, salaried, ded) {
+    var std = salaried ? (isNew ? 75000 : 50000) : 0;
+    var ti = Math.max(0, gross - std - (isNew ? 0 : ded));
+    return { ti: ti, tax: taxWithSurcharge(ti, isNew, age) * 1.04 }; // 4% cess
+  }
+
+  var salSeg = CM.seg('seg-sal'), ageSeg = CM.seg('seg-age');
+
+  function recalc() {
+    var inc = CM.val('inc'), ded = CM.val('ded');
+    var salaried = (salSeg.value || '1') === '1';
+    var age = parseInt(ageSeg.value || '0', 10);
+    if (inc <= 0) return;
+
+    var nw = totalTax(inc, true, age, salaried, ded);
+    var od = totalTax(inc, false, age, salaried, ded);
+    var best = Math.min(nw.tax, od.tax);
+    var verdict = nw.tax < od.tax ? 'New regime is better for you'
+      : od.tax < nw.tax ? 'Old regime is better for you' : 'Both regimes are equal';
+
+    CM.set('out-best', CM.inr(best));
+    CM.set('out-verdict', verdict + ' · effective rate ' + CM.num(best / inc * 100, 1) + '%');
+    CM.set('out-new', CM.inr(nw.tax));
+    CM.set('out-new-sub', 'taxable ' + CM.compact(nw.ti));
+    CM.set('out-old', CM.inr(od.tax));
+    CM.set('out-old-sub', 'taxable ' + CM.compact(od.ti));
+    CM.set('out-save', CM.inr(Math.abs(nw.tax - od.tax)));
+
+    CM.barChart('chart-cmp', ['New regime', 'Old regime'], [
+      { label: 'Total tax', data: [nw.tax, od.tax], role: '--s1' }
+    ]);
+  }
+  CM.bind(['inc', 'ded'], recalc);
+});
+</script>

@@ -1,0 +1,101 @@
+---
+layout: layouts/calculator.njk
+permalink: /lumpsum-calculator/
+title: "Lumpsum Calculator — One-Time Investment Return Calculator"
+h1: "Lumpsum Calculator"
+description: "Calculate the future value of a one-time mutual fund or equity investment with compounding. See year-wise growth and total wealth gained."
+lede: "Find out what a one-time investment grows to with compounding, and watch how the growth accelerates in the later years."
+updated: 2026-07-13
+related: [sip-calculator, fd-calculator, inflation-calculator]
+faqs:
+  - q: "How is lumpsum growth calculated?"
+    a: >-
+      With the compound interest formula FV = P × (1 + r)^t, where P is the amount invested, r the annual return and t the number of years. Growth compounds — each year's returns earn returns themselves — which is why the value curve steepens over time.
+  - q: "When is lumpsum investing better than a SIP?"
+    a: >-
+      When you already have the money and a long horizon, investing it at once maximises time in the market, which historically beats spreading it out in most periods. SIP-style staggering (or an STP from a liquid fund) is mainly a behavioural cushion against investing a large sum right before a crash.
+  - q: "What is the rule of 72?"
+    a: >-
+      Divide 72 by your annual return to estimate how many years your money takes to double. At 12% a lumpsum doubles roughly every 6 years, so ₹1 lakh becomes about ₹2 lakh in 6 years, ₹4 lakh in 12 and ₹8 lakh in 18.
+  - q: "Should I account for inflation in these numbers?"
+    a: >-
+      Yes — the output is in future rupees, which will buy less than today's. A quick fix is to use a real return (expected return minus expected inflation, e.g. 12% − 6% = 6%) to see the answer in today's purchasing power, or use our inflation calculator alongside.
+  - q: "How are lumpsum mutual fund gains taxed?"
+    a: >-
+      The same as any mutual fund investment: for equity funds, gains on units held over 12 months are long-term and taxed at 12.5% above the ₹1.25 lakh annual exemption; short-term gains are taxed at 20%. Debt fund gains are added to your income. Verify current rates before redeeming, as budgets revise them.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Investment amount', '₹', 1000, 100000000, 1000, 100000, '₹1k', '₹10 Cr') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 1, 30, 0.5, 12, '1%', '30%') }}
+    {{ m.field('n', 'Investment period', 'years', 1, 40, 1, 10, '1 yr', '40 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Future value</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Invested</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Wealth gained</div><div class="v pos" id="out-gain">—</div></div>
+      <div class="stat"><div class="k">Money multiple</div><div class="v" id="out-x">—</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Value at the end of each year.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year growth table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>Compounding, visualised</h2>
+  <p>A lumpsum investment is the purest demonstration of compound growth: you invest once and every year's return is earned on an ever-larger base. The curve looks flat at first and steep later — at 12%, an investment gains as much in years 13–18 as it did in its entire first 12 years. The practical lesson is that time in the market matters more than the amount: money you can leave untouched for 15–20 years does extraordinary work.</p>
+
+  <h2>Formula</h2>
+  <div class="formula">FV = P × (1 + r)<sup>t</sup></div>
+  <ul>
+    <li><strong>P</strong> — amount invested today</li>
+    <li><strong>r</strong> — expected annual return (as a decimal)</li>
+    <li><strong>t</strong> — years invested</li>
+  </ul>
+
+  <h2>Worked example</h2>
+  <p>₹1,00,000 invested at 12% p.a. for 10 years: FV = 1,00,000 × (1.12)<sup>10</sup> ≈ <strong>₹3,10,585</strong> — your money roughly triples. Leave it another 10 years and it becomes about ₹9.65 lakh; the second decade adds more than twice what the first did, without you investing another rupee.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Enter the amount, expected annual return and holding period.</li>
+    <li>The money-multiple tile shows how many times your investment grows.</li>
+    <li>Compare with the <a href="/sip-calculator/">SIP calculator</a> if you are deciding between investing at once or monthly.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), r = CM.val('r') / 100, t = CM.val('n');
+    if (p <= 0 || t <= 0) return;
+    var fv = p * Math.pow(1 + r, t);
+
+    CM.set('out-fv', CM.inr(fv));
+    var w = CM.words(fv);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(p));
+    CM.set('out-gain', CM.inr(fv - p));
+    CM.set('out-x', CM.num(fv / p, 2) + '×');
+
+    var labels = [], series = [], rows = [];
+    for (var y = 0; y <= t; y++) {
+      var v = p * Math.pow(1 + r, y);
+      labels.push('Y' + y); series.push(v);
+      if (y > 0) rows.push([y, CM.inr(v - p), CM.inr(v)]);
+    }
+    CM.lineChart('chart-growth', labels, [{ label: 'Value', data: series, role: '--s1', fill: true }]);
+    CM.table('sched-out', ['Year', 'Gain', 'Value'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

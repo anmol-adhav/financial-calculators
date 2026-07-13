@@ -1,0 +1,113 @@
+---
+layout: layouts/calculator.njk
+permalink: /sip-calculator/
+title: "SIP Calculator — Mutual Fund SIP Return Calculator (India)"
+h1: "SIP Calculator"
+description: "Free SIP calculator for India. Calculate the future value of your monthly mutual fund SIP, total investment, wealth gained and year-by-year growth."
+lede: "Estimate what your monthly mutual fund SIP will grow to, how much of it is your own money versus returns, and how the corpus builds year by year."
+updated: 2026-07-13
+related: [step-up-sip-calculator, lumpsum-calculator, swp-calculator]
+faqs:
+  - q: "How are SIP returns calculated?"
+    a: >-
+      SIP maturity value uses the future value of an annuity formula: FV = P × ((1+i)^n − 1) / i × (1+i), where P is the monthly instalment, i is the monthly rate of return and n is the number of instalments. Each instalment compounds for the months remaining until the end date, which is why early instalments contribute the most.
+  - q: "What return should I assume for an equity SIP?"
+    a: >-
+      Indian equity funds have historically delivered around 11–14% p.a. over long periods, but returns are not guaranteed and vary widely by fund and period. A 10–12% assumption is a reasonable planning baseline for equity funds; use 6–8% for debt funds and hybrid assumptions in between.
+  - q: "Is SIP better than a lumpsum investment?"
+    a: >-
+      SIP spreads your purchase across market levels (rupee-cost averaging), which suits salaried investors and volatile markets, while a lumpsum invested early captures more compounding time if markets rise. Mathematically a lumpsum wins in steadily rising markets; behaviourally SIPs are easier to stick with. Many investors do both — SIP from salary plus lumpsums when they have surplus.
+  - q: "Are SIP returns taxable in India?"
+    a: >-
+      Yes. For equity funds, long-term capital gains (units held over 12 months) above ₹1.25 lakh a year are taxed at 12.5%, and short-term gains at 20%. Each SIP instalment has its own holding period. Debt fund gains are taxed at your income slab rate. Rules change with budgets, so verify current rates before redeeming.
+  - q: "Can I stop or change my SIP anytime?"
+    a: >-
+      Yes. SIPs in open-ended mutual funds are fully flexible — you can pause, stop, increase or decrease them without penalty from the fund house. Exit loads (typically 1% if redeemed within a year) apply only when you sell units, not when you stop investing.
+  - q: "What is XIRR and why does my statement show it?"
+    a: >-
+      XIRR is the annualised return that accounts for the exact date and amount of every instalment. Because SIP money goes in over time rather than all at once, XIRR is the correct way to measure an ongoing SIP's actual performance, and it is what this calculator's assumed annual rate corresponds to.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Monthly investment', '₹', 500, 1000000, 500, 10000, '₹500', '₹10L') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 1, 30, 0.5, 12, '1%', '30%') }}
+    {{ m.field('n', 'Investment period', 'years', 1, 40, 1, 15, '1 yr', '40 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Maturity value</div><div class="v" id="out-fv">—</div><div class="sub" id="out-fv-sub"></div></div>
+      <div class="stat"><div class="k">Invested</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Wealth gained</div><div class="v pos" id="out-gain">—</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+    <p class="chart-note">Corpus value vs amount invested at the end of each year.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year growth table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>What is a SIP?</h2>
+  <p>A Systematic Investment Plan (SIP) invests a fixed amount into a mutual fund every month, usually by auto-debit. Instead of timing the market, you buy units at whatever the day's NAV is — more units when markets are down, fewer when they are up. Over years, this rupee-cost averaging plus compounding is the most practical wealth-building route for salaried investors, which is why SIPs have become the default way Indians invest in mutual funds.</p>
+
+  <h2>SIP formula</h2>
+  <div class="formula">FV = P × ((1 + i)<sup>n</sup> − 1) / i × (1 + i)</div>
+  <ul>
+    <li><strong>P</strong> — monthly SIP amount</li>
+    <li><strong>i</strong> — monthly return = annual return ÷ 12 ÷ 100</li>
+    <li><strong>n</strong> — total number of monthly instalments</li>
+  </ul>
+  <p>The formula assumes each instalment is invested at the start of the month and compounds monthly at a constant rate. Real fund returns fluctuate, so treat the output as a planning estimate, not a promise.</p>
+
+  <h2>Worked example</h2>
+  <p>A ₹10,000 monthly SIP at 12% p.a. for 15 years means i = 0.01 and n = 180. You invest ₹18,00,000 in total, and the formula gives a maturity value of about <strong>₹50.5 lakh</strong> — nearly ₹32.5 lakh of it is growth. Stretch the same SIP to 25 years and the corpus crosses ₹1.9 crore, even though you only invest ₹12 lakh more. The last few years do the heaviest lifting; starting early beats investing more later.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Set your monthly amount, expected annual return and time horizon; results update instantly.</li>
+    <li>The chart compares your cumulative investment with the growing corpus each year.</li>
+    <li>Open the growth table for exact year-end values.</li>
+    <li>Planning to raise your SIP every year with your salary? Use the <a href="/step-up-sip-calculator/">Step-Up SIP calculator</a> instead — the difference is dramatic.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), rate = CM.val('r'), yrs = CM.val('n');
+    var i = rate / 1200, n = Math.round(yrs * 12);
+    if (p <= 0 || n <= 0) return;
+    var fv = i === 0 ? p * n : p * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+    var inv = p * n;
+
+    CM.set('out-fv', CM.inr(fv));
+    var w = CM.words(fv);
+    CM.set('out-fv-sub', w ? 'about ' + w : '');
+    CM.set('out-inv', CM.inr(inv));
+    CM.set('out-gain', CM.inr(fv - inv));
+
+    var labels = [], invSeries = [], valSeries = [], rows = [];
+    var bal = 0;
+    for (var mth = 1; mth <= n; mth++) {
+      bal = (bal + p) * (1 + i);
+      if (mth % 12 === 0 || mth === n) {
+        var y = Math.ceil(mth / 12);
+        labels.push('Y' + y); invSeries.push(p * mth); valSeries.push(bal);
+        rows.push([y, CM.inr(p * mth), CM.inr(bal - p * mth), CM.inr(bal)]);
+      }
+    }
+    CM.lineChart('chart-growth', labels, [
+      { label: 'Value', data: valSeries, role: '--s1', fill: true },
+      { label: 'Invested', data: invSeries, role: '--s2' }
+    ]);
+    CM.table('sched-out', ['Year', 'Invested', 'Gain', 'Value'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>

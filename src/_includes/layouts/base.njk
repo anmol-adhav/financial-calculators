@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<meta name="description" content="{{ description or site.description }}">
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description or site.description }}">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a78d6'/%3E%3Ctext x='50' y='73' font-size='64' text-anchor='middle' fill='white' font-family='system-ui'%3E%E2%82%B9%3C/text%3E%3C/svg%3E">
+<script>
+(function(){
+  var t = localStorage.getItem('cm-theme');
+  if(!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="/assets/css/style.css">
+{% if usesChart %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>{% endif %}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="CalculateMoney home">
+      <span class="brand-mark">₹</span><span class="brand-name">Calculate<b>Money</b></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/">All Calculators</a>
+      <a href="/emi-calculator/">EMI</a>
+      <a href="/sip-calculator/">SIP</a>
+      <a href="/income-tax-calculator/">Income Tax</a>
+    </nav>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Switch between light and dark theme">🌙</button>
+  </div>
+</header>
+
+<main id="main">
+{{ content | safe }}
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h3>Investments</h3>
+        {% for c in calcs %}{% if c.cat == 'Investments' %}<a href="/{{ c.slug }}/">{{ c.name }}</a>{% endif %}{% endfor %}
+      </div>
+      <div>
+        <h3>Deposits &amp; Loans</h3>
+        {% for c in calcs %}{% if c.cat == 'Deposits' or c.cat == 'Loans' %}<a href="/{{ c.slug }}/">{{ c.name }}</a>{% endif %}{% endfor %}
+      </div>
+      <div>
+        <h3>Tax &amp; Planning</h3>
+        {% for c in calcs %}{% if c.cat == 'Tax' or c.cat == 'Retirement' or c.cat == 'Planning' %}<a href="/{{ c.slug }}/">{{ c.name }}</a>{% endif %}{% endfor %}
+      </div>
+      <div>
+        <h3>{{ site.name }}</h3>
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms/">Terms of Use</a>
+        <a href="/disclaimer/">Disclaimer</a>
+      </div>
+    </div>
+    <p class="footer-note">{{ site.name }} provides free educational tools. Results are estimates based on the inputs and assumptions shown — they are not financial, tax or investment advice. Verify important decisions with a qualified professional.</p>
+    <p class="footer-copy">© 2026 {{ site.name }} · calculatemoney.xyz</p>
+  </div>
+</footer>
+<script src="/assets/js/app.js" defer></script>
+</body>
+</html>

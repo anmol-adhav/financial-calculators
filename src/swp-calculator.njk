@@ -1,0 +1,103 @@
+---
+layout: layouts/calculator.njk
+permalink: /swp-calculator/
+title: "SWP Calculator — Systematic Withdrawal Plan Calculator (India)"
+h1: "SWP Calculator"
+description: "Calculate how long your corpus lasts with a monthly systematic withdrawal plan, or find the safe monthly withdrawal for retirement income."
+lede: "Turn a corpus into monthly income: see how long your money lasts at a given withdrawal, and what happens to the balance along the way."
+updated: 2026-07-13
+related: [fire-calculator, sip-calculator, inflation-calculator]
+faqs:
+  - q: "What is a systematic withdrawal plan (SWP)?"
+    a: >-
+      An SWP automatically redeems a fixed amount from your mutual fund every month and credits it to your bank account — the reverse of a SIP. The remaining corpus stays invested and keeps earning, which is why an SWP can pay out more in total than the corpus you started with.
+  - q: "How long will my corpus last with an SWP?"
+    a: >-
+      It depends on the gap between your withdrawal rate and the fund's return. If you withdraw less than the corpus earns, it never depletes and actually grows. Withdrawing ₹15,000 monthly (₹1.8 lakh/yr, i.e. 9% of a ₹20 lakh corpus) at an 8% return depletes in about 21 years; at a 4–5% withdrawal rate, most corpora last indefinitely.
+  - q: "Is SWP income taxable?"
+    a: >-
+      Each withdrawal is a redemption, so only the capital-gains portion of it is taxed — not the whole amount. For equity funds, long-term gains above ₹1.25 lakh a year are taxed at 12.5%. This usually makes SWP far more tax-efficient than FD interest, where the entire interest is taxed at slab rate.
+  - q: "What is a safe withdrawal rate in India?"
+    a: >-
+      The classic 4% rule comes from US data; for India, with higher inflation, planners often suggest 3–4% of the corpus per year (rising with inflation) for a 30+ year retirement from a balanced portfolio. This calculator uses a fixed monthly withdrawal — increase it periodically in your planning to reflect inflation.
+  - q: "SWP or annuity for retirement income?"
+    a: >-
+      An annuity guarantees income for life but locks your capital and typically yields less, with the income fully taxable. An SWP keeps your capital flexible and tax-efficient but bears market risk. Many retirees blend the two — an annuity or government schemes for essential expenses, SWP for the rest.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Corpus (invested amount)', '₹', 100000, 100000000, 100000, 5000000, '₹1L', '₹10 Cr') }}
+    {{ m.field('w', 'Monthly withdrawal', '₹', 1000, 1000000, 1000, 30000, '₹1k', '₹10L') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 1, 15, 0.5, 8, '1%', '15%') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Corpus lasts</div><div class="v" id="out-lasts">—</div><div class="sub" id="out-lasts-sub"></div></div>
+      <div class="stat"><div class="k">Total withdrawn</div><div class="v" id="out-wd">—</div></div>
+      <div class="stat"><div class="k">Withdrawal rate</div><div class="v" id="out-rate">—</div><div class="sub">per year, of corpus</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-bal"></canvas></div>
+    <p class="chart-note">Corpus balance at the end of each year (up to 50 years shown).</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year balance table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>How an SWP works</h2>
+  <p>A systematic withdrawal plan redeems a fixed amount from your mutual fund investment every month. Whatever remains stays invested and continues to compound. The corpus therefore runs a race between withdrawals draining it and returns replenishing it. If your annual withdrawals stay below the corpus's earnings, the balance grows forever; above that, it depletes on a schedule this calculator computes month by month.</p>
+
+  <h2>The break-even withdrawal</h2>
+  <div class="formula">Perpetual monthly withdrawal ≈ Corpus × r / 12</div>
+  <p>At an 8% return, a ₹50 lakh corpus earns about ₹33,300 a month on average — withdraw less than that and your corpus is effectively perpetual (though market volatility means real-world outcomes vary around this average, especially in the early years).</p>
+
+  <h2>Worked example</h2>
+  <p>₹50,00,000 corpus, ₹30,000 monthly withdrawal, 8% p.a. return: the withdrawal (7.2% of corpus per year) is below the 8% earning rate, so the balance actually keeps rising while paying you ₹3.6 lakh a year. Raise the withdrawal to ₹45,000 and the corpus depletes in about 17.6 years after paying out roughly ₹95 lakh — nearly twice the starting amount, thanks to returns earned along the way.</p>
+
+  <h2>How to use this calculator</h2>
+  <ul>
+    <li>Enter your corpus, planned monthly withdrawal and expected return.</li>
+    <li>If the balance never falls, the calculator reports the corpus as lasting 50+ years.</li>
+    <li>Pair with the <a href="/fire-calculator/">FIRE calculator</a> to first size the corpus you need, then test withdrawal plans here.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var MAX_MONTHS = 600;
+  function recalc() {
+    var p = CM.val('p'), wd = CM.val('w'), r = CM.val('r') / 1200;
+    if (p <= 0 || wd <= 0) return;
+    var bal = p, mths = 0, totalWd = 0;
+    var labels = ['Y0'], series = [p], rows = [];
+    var yearWd = 0;
+    while (bal > 0 && mths < MAX_MONTHS) {
+      bal = bal * (1 + r);
+      var take = Math.min(wd, bal);
+      bal -= take; totalWd += take; yearWd += take;
+      mths++;
+      if (mths % 12 === 0 || bal <= 0) {
+        var y = Math.ceil(mths / 12);
+        labels.push('Y' + y); series.push(bal);
+        rows.push([y, CM.inr(yearWd), CM.inr(bal)]);
+        yearWd = 0;
+      }
+    }
+    var never = bal > 0;
+    CM.set('out-lasts', never ? '50+ years' : CM.num(mths / 12, 1) + ' years');
+    CM.set('out-lasts-sub', never ? 'withdrawal is below what the corpus earns — it never depletes at this rate' : 'until the corpus is exhausted');
+    CM.set('out-wd', CM.inr(totalWd));
+    CM.set('out-rate', CM.num(wd * 12 / p * 100, 1) + '%');
+
+    CM.lineChart('chart-bal', labels, [{ label: 'Corpus balance', data: series, role: '--s1', fill: true }]);
+    CM.table('sched-out', ['Year', 'Withdrawn', 'Balance'], rows);
+  }
+  CM.bind(['p', 'w', 'r'], recalc);
+});
+</script>

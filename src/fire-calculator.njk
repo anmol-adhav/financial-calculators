@@ -1,0 +1,100 @@
+---
+layout: layouts/calculator.njk
+permalink: /fire-calculator/
+title: "FIRE Calculator India — How Much Do You Need to Retire Early?"
+h1: "FIRE Calculator"
+description: "Calculate your FIRE number for India — the corpus you need to retire early, adjusted for inflation, with the monthly SIP required to reach it."
+lede: "Find your FIRE number — the corpus that lets your investments pay for life — adjusted for Indian inflation, plus the monthly SIP that gets you there."
+updated: 2026-07-13
+related: [swp-calculator, sip-calculator, inflation-calculator]
+faqs:
+  - q: "What is FIRE?"
+    a: >-
+      FIRE stands for Financial Independence, Retire Early — accumulating a corpus large enough that a safe withdrawal covers your living expenses forever, making work optional. The standard sizing rule is 25–33 times your annual expenses at retirement, depending on how conservative you want to be.
+  - q: "Why 25x annual expenses?"
+    a: >-
+      25x corresponds to a 4% initial withdrawal rate, which US historical data suggests survives a 30-year retirement in most scenarios. For India — higher inflation, longer early retirements — many planners prefer 30–33x (a 3–3.3% withdrawal rate). This calculator lets you set the multiple via the withdrawal rate.
+  - q: "Why does the calculator inflate my expenses first?"
+    a: >-
+      Because you retire in the future, not today. Expenses of ₹6 lakh a year today become about ₹14.4 lakh in 15 years at 6% inflation, and your corpus must support that amount. Skipping this step is the single most common way people underestimate their FIRE number.
+  - q: "What are Lean FIRE, Fat FIRE and Coast FIRE?"
+    a: >-
+      Lean FIRE means retiring on a minimal budget (a smaller multiple of bare-bones expenses). Fat FIRE supports a comfortable lifestyle with buffer (often 40–50x). Coast FIRE means you have invested enough that, without any further contributions, compounding alone will fund a normal retirement — you only need to earn your current expenses until then.
+  - q: "Does the corpus really last forever at a 4% withdrawal?"
+    a: >-
+      Not guaranteed — sequence-of-returns risk (bad markets early in retirement) can deplete a corpus even when average returns look fine. Mitigations include a lower withdrawal rate, a 2–3 year cash buffer, some guaranteed income (annuity, rental), and flexibility to cut spending in bad years.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('e', 'Current annual expenses', '₹', 100000, 10000000, 50000, 600000, '₹1L', '₹1 Cr') }}
+    {{ m.field('n', 'Years until retirement', 'years', 1, 40, 1, 15, '1 yr', '40 yrs') }}
+    {{ m.field('inf', 'Expected inflation', '%', 2, 12, 0.5, 6, '2%', '12%') }}
+    {{ m.field('wr', 'Safe withdrawal rate', '%', 2.5, 5, 0.25, 4, '2.5% (33x+)', '5% (20x)') }}
+    {{ m.field('r', 'Return on investments (p.a.)', '%', 6, 20, 0.5, 12, '6%', '20%') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Your FIRE number</div><div class="v" id="out-corpus">—</div><div class="sub" id="out-corpus-sub"></div></div>
+      <div class="stat"><div class="k">Expenses at retirement</div><div class="v" id="out-exp">—</div><div class="sub">per year, inflated</div></div>
+      <div class="stat"><div class="k">Corpus multiple</div><div class="v" id="out-mult">—</div><div class="sub">× annual expenses</div></div>
+      <div class="stat"><div class="k">SIP needed to get there</div><div class="v" id="out-sip">—</div><div class="sub" id="out-sip-sub">per month, starting now</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-target"></canvas></div>
+    <p class="chart-note">How your required corpus grows with every year you delay retirement.</p>
+  </div>
+</div>
+
+<article class="article">
+  <h2>How your FIRE number is calculated</h2>
+  <p>Three steps, each of which this calculator does live:</p>
+  <ol>
+    <li><strong>Inflate your expenses</strong> to your retirement year: Expenses × (1 + inflation)<sup>years</sup>.</li>
+    <li><strong>Size the corpus</strong> from your safe withdrawal rate: inflated expenses ÷ withdrawal rate. A 4% rate means 25× expenses; 3.33% means 30×.</li>
+    <li><strong>Work backwards to a monthly SIP</strong> that reaches the corpus in the time available, at your expected return.</li>
+  </ol>
+  <div class="formula">FIRE corpus = E × (1 + i)<sup>n</sup> × (100 / WR)</div>
+
+  <h2>Worked example</h2>
+  <p>Spending ₹6,00,000 a year today, retiring in 15 years, 6% inflation, 4% withdrawal rate: expenses at retirement are about ₹14.4 lakh a year, so the corpus needed is roughly <strong>₹3.6 crore</strong>. Reaching it in 15 years at a 12% return requires a SIP of about ₹72,000 a month — which is exactly why FIRE aspirants push their savings rate to 50%+ of income and start as early as possible.</p>
+
+  <h2>Making your FIRE plan realistic</h2>
+  <ul>
+    <li><strong>Use honest expenses.</strong> Include rent (or maintenance if you own), insurance premiums, family costs and irregular spends like travel and repairs — not just your monthly card bill.</li>
+    <li><strong>Healthcare is the wildcard.</strong> Medical inflation in India runs well above general inflation; a strong health insurance cover is a prerequisite for any early retirement.</li>
+    <li><strong>Prefer 30x+ if retiring before 45.</strong> A 50-year retirement gives markets more chances to hurt you; a 3–3.3% withdrawal rate buys a large safety margin.</li>
+    <li><strong>Revisit yearly.</strong> Recalculate with actual inflation and portfolio values; a plan checked annually can be corrected cheaply.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var e = CM.val('e'), n = CM.val('n'), inf = CM.val('inf') / 100, wr = CM.val('wr'), r = CM.val('r');
+    if (e <= 0 || n <= 0 || wr <= 0) return;
+    var expAtRet = e * Math.pow(1 + inf, n);
+    var corpus = expAtRet * (100 / wr);
+    var mult = 100 / wr;
+
+    var i = r / 1200, months = Math.round(n * 12);
+    var sip = i === 0 ? corpus / months : corpus / (((Math.pow(1 + i, months) - 1) / i) * (1 + i));
+
+    CM.set('out-corpus', CM.inr(corpus));
+    var w = CM.words(corpus);
+    CM.set('out-corpus-sub', w ? 'about ' + w : '');
+    CM.set('out-exp', CM.inr(expAtRet));
+    CM.set('out-mult', CM.num(mult, 1) + '×');
+    CM.set('out-sip', CM.inr(sip));
+
+    var labels = [], series = [];
+    for (var y = 0; y <= n; y++) {
+      labels.push('Y' + y);
+      series.push(e * Math.pow(1 + inf, y) * (100 / wr));
+    }
+    CM.lineChart('chart-target', labels, [{ label: 'Required corpus', data: series, role: '--s1', fill: true }]);
+  }
+  CM.bind(['e', 'n', 'inf', 'wr', 'r'], recalc);
+});
+</script>

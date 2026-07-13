@@ -1,0 +1,10 @@
+{% macro field(id, label, unit, min, max, step, value, minLabel, maxLabel) %}
+<div class="field">
+  <div class="field-head">
+    <label for="{{ id }}">{{ label }}</label>
+    <span class="num-wrap">{% if unit == '₹' %}<span class="unit">₹</span>{% endif %}<input type="number" id="{{ id }}" min="{{ min }}" max="{{ max }}" step="{{ step }}" value="{{ value }}" inputmode="decimal">{% if unit and unit != '₹' %}<span class="unit">{{ unit }}</span>{% endif %}</span>
+  </div>
+  <input type="range" id="{{ id }}-r" min="{{ min }}" max="{{ max }}" step="{{ step }}" value="{{ value }}" aria-label="{{ label }}">
+  <div class="range-limits"><span>{{ minLabel }}</span><span>{{ maxLabel }}</span></div>
+</div>
+{% endmacro %}

@@ -1,0 +1,113 @@
+---
+layout: layouts/calculator.njk
+permalink: /gst-calculator/
+title: "GST Calculator — Add or Remove GST Online (2025 Rates)"
+h1: "GST Calculator"
+description: "Add GST to a base price or extract GST from an inclusive price, with CGST/SGST split, at the current post-2025-reform rates of 5%, 18% and 40%."
+lede: "Add GST to a price or pull GST out of an MRP, with the CGST/SGST split — using the simplified slab structure in force since September 2025."
+updated: 2026-07-13
+related: [income-tax-calculator, emi-calculator, inflation-calculator]
+faqs:
+  - q: "What are the GST rates after the 2025 reform?"
+    a: >-
+      The GST Council's September 2025 rationalisation (effective 22 September 2025) collapsed the old 5/12/18/28 structure into two main slabs — 5% for essentials and merit goods and 18% as the standard rate — plus a 40% rate for demerit goods like tobacco, pan masala and luxury vehicles. Special rates continue for gold and precious metals (3%) and rough diamonds (0.25%).
+  - q: "How do I remove GST from an MRP (inclusive price)?"
+    a: >-
+      Divide the inclusive price by (1 + rate/100). For an 18% item priced at ₹1,180 inclusive: base = 1180 ÷ 1.18 = ₹1,000, so the GST inside is ₹180. Simply multiplying the MRP by 18% overstates the tax — a common billing mistake.
+  - q: "What is the CGST/SGST split?"
+    a: >-
+      On sales within a state, GST is collected half as Central GST and half as State GST — an 18% tax is 9% CGST + 9% SGST. On inter-state sales the full amount is charged as IGST instead. The total tax is identical either way.
+  - q: "Who needs to register for GST?"
+    a: >-
+      Businesses with annual turnover above ₹40 lakh for goods (₹20 lakh in special-category states) or ₹20 lakh for services (₹10 lakh in special-category states) must register, as must all inter-state sellers and e-commerce sellers regardless of turnover.
+  - q: "What is input tax credit (ITC)?"
+    a: >-
+      Registered businesses can subtract the GST they paid on purchases from the GST they collect on sales, remitting only the difference. This means GST is effectively a tax on value added at each stage, and the final consumer bears the full tax.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Amount', '₹', 1, 100000000, 1, 10000, '₹1', '₹10 Cr') }}
+    <div class="field">
+      <div class="field-head"><label>GST rate</label></div>
+      <div class="seg" id="seg-rate">
+        <button data-val="0.25" type="button">0.25%</button>
+        <button data-val="3" type="button">3%</button>
+        <button data-val="5" type="button">5%</button>
+        <button data-val="18" class="on" type="button">18%</button>
+        <button data-val="40" type="button">40%</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-head"><label>Calculation</label></div>
+      <div class="seg" id="seg-dir">
+        <button data-val="add" class="on" type="button">Add GST (exclusive → inclusive)</button>
+        <button data-val="remove" type="button">Remove GST (inclusive → base)</button>
+      </div>
+    </div>
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k" id="out-main-label">Total (inclusive)</div><div class="v" id="out-main">—</div></div>
+      <div class="stat"><div class="k">GST amount</div><div class="v" id="out-gst">—</div></div>
+      <div class="stat"><div class="k">CGST</div><div class="v" id="out-cgst">—</div><div class="sub" id="out-cgst-sub"></div></div>
+      <div class="stat"><div class="k">SGST</div><div class="v" id="out-sgst">—</div><div class="sub" id="out-sgst-sub"></div></div>
+    </div>
+    <div class="note" id="out-note"></div>
+  </div>
+</div>
+
+<article class="article">
+  <h2>GST slabs in force (since 22 September 2025)</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Rate</th><th>Applies to (examples)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>0%</strong></td><td>Unbranded food staples, fresh produce, education and health services, UHT milk, paneer, individual life & health insurance premiums</td></tr>
+      <tr><td><strong>0.25%</strong></td><td>Rough / unpolished diamonds</td></tr>
+      <tr><td><strong>3%</strong></td><td>Gold, silver, platinum and jewellery</td></tr>
+      <tr><td><strong>5%</strong></td><td>Essentials and merit goods — packaged foods, medicines, agricultural machinery, small cars & two-wheelers (≤350cc), cement-alternatives, most items moved down from 12%</td></tr>
+      <tr><td><strong>18%</strong></td><td>The standard rate — most goods and services, electronics, ACs, TVs, cement, and most items moved down from 28%</td></tr>
+      <tr><td><strong>40%</strong></td><td>Demerit and luxury goods — tobacco products, pan masala, aerated drinks, large cars, motorcycles above 350cc</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Classifications change through GST Council notifications — always verify the current rate for your specific product or service (HSN/SAC code) before invoicing.</p>
+
+  <h2>Formulas</h2>
+  <div class="formula">Add GST: Total = Base × (1 + r/100) &nbsp; · &nbsp; Remove GST: Base = Total ÷ (1 + r/100)</div>
+
+  <h2>Worked example</h2>
+  <p>A service billed at ₹10,000 plus 18% GST: tax = ₹1,800 (₹900 CGST + ₹900 SGST within a state), invoice total ₹11,800. Working backwards from an inclusive MRP of ₹11,800: base = 11,800 ÷ 1.18 = ₹10,000 — not ₹11,800 − 18% = ₹9,676, which is the classic reverse-calculation error.</p>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var rateSeg = CM.seg('seg-rate');
+  var dirSeg = CM.seg('seg-dir', function (v) {
+    CM.set('out-main-label', v === 'add' ? 'Total (inclusive)' : 'Base price (excl. GST)');
+  });
+  function recalc() {
+    var p = CM.val('p'), r = parseFloat(rateSeg.value || 18);
+    var add = (dirSeg.value || 'add') === 'add';
+    if (p <= 0) return;
+    var base, total;
+    if (add) { base = p; total = p * (1 + r / 100); }
+    else { total = p; base = p / (1 + r / 100); }
+    var gst = total - base;
+
+    CM.set('out-main', CM.inr(add ? total : base, 2));
+    CM.set('out-gst', CM.inr(gst, 2));
+    CM.set('out-cgst', CM.inr(gst / 2, 2));
+    CM.set('out-sgst', CM.inr(gst / 2, 2));
+    CM.set('out-cgst-sub', CM.num(r / 2, 2) + '% (intra-state)');
+    CM.set('out-sgst-sub', CM.num(r / 2, 2) + '% (intra-state)');
+    CM.set('out-note', add
+      ? 'Base ' + CM.inr(base, 2) + ' + GST ' + CM.inr(gst, 2) + ' at ' + r + '% = ' + CM.inr(total, 2) + '. For inter-state sales the full ' + r + '% is charged as IGST.'
+      : CM.inr(total, 2) + ' inclusive contains ' + CM.inr(gst, 2) + ' GST at ' + r + '%. For inter-state sales the full ' + r + '% is IGST.');
+  }
+  CM.bind(['p'], recalc);
+});
+</script>

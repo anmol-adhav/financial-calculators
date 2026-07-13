@@ -1,0 +1,83 @@
+---
+layout: layouts/base.njk
+usesChart: true
+---
+<div class="wrap page-pad">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <span>{{ h1 }}</span></nav>
+  <h1>{{ h1 }}</h1>
+  <p class="lede">{{ lede }}</p>
+  <p class="updated">Last updated: {{ updated | readableDate }}</p>
+
+  {{ content | safe }}
+
+  {% if faqs %}
+  <section class="faq-section" id="faqs">
+    <h2>Frequently asked questions</h2>
+    {% for f in faqs %}
+    <details class="faq">
+      <summary>{{ f.q }}</summary>
+      <p>{{ f.a }}</p>
+    </details>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if related %}
+  <section class="related-section">
+    <h2>Related calculators</h2>
+    <div class="card-grid">
+      {% for slug in related %}
+        {% set rc = calcs | calcBySlug(slug) %}
+        {% if rc %}
+        <a class="calc-card" href="/{{ rc.slug }}/">
+          <span class="calc-card-icon" aria-hidden="true">{{ rc.icon }}</span>
+          <span class="calc-card-name">{{ rc.name }}</span>
+          <span class="calc-card-short">{{ rc.short }}</span>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": {{ h1 | dump | safe }},
+  "url": "{{ site.url }}{{ page.url }}",
+  "description": {{ description | dump | safe }},
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": {{ h1 | dump | safe }}, "item": "{{ site.url }}{{ page.url }}" }
+  ]
+}
+</script>
+{% if faqs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for f in faqs %}
+    {
+      "@type": "Question",
+      "name": {{ f.q | dump | safe }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ f.a | dump | safe }} }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}

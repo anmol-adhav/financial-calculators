@@ -1,0 +1,12 @@
+{
+  "name": "calculatemoney",
+  "version": "2.0.0",
+  "description": "CalculateMoney — free financial calculators for India",
+  "scripts": {
+    "build": "eleventy",
+    "start": "eleventy --serve --port 8080"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  }
+}

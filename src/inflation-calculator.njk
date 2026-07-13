@@ -1,0 +1,96 @@
+---
+layout: layouts/calculator.njk
+permalink: /inflation-calculator/
+title: "Inflation Calculator India — Future Cost & Value of Money"
+h1: "Inflation Calculator"
+description: "See what today's money will be worth in the future and how much today's expenses will cost later, at any inflation rate."
+lede: "Inflation quietly halves your money's buying power roughly every 12 years at 6%. See exactly what your rupees will buy — and what things will cost — down the line."
+updated: 2026-07-13
+related: [fire-calculator, sip-calculator, lumpsum-calculator]
+faqs:
+  - q: "What inflation rate should I assume for India?"
+    a: >-
+      Headline CPI inflation in India has averaged around 5–6% over the past two decades, so 6% is a common planning assumption. Use higher rates for specific categories: education and healthcare costs have historically inflated at 8–10%.
+  - q: "What is the difference between future cost and present value here?"
+    a: >-
+      Future cost answers "what will today's ₹1 lakh expense cost in n years?" (multiply by (1+i)^n). Present value answers "what will ₹1 lakh received in n years be worth in today's terms?" (divide by (1+i)^n). Both appear in the results because both directions matter in planning.
+  - q: "How fast does money lose half its value?"
+    a: >-
+      Divide 72 by the inflation rate: at 6%, prices double (and money halves) roughly every 12 years; at 8%, every 9 years. Over a 30-year retirement at 6% inflation, prices rise almost 6-fold — which is why keeping savings in cash guarantees a loss of purchasing power.
+  - q: "What return do I need to beat inflation?"
+    a: >-
+      Your investments must earn more than inflation after tax. With 6% inflation, a 7% FD taxed at 30% yields just 4.9% — a real loss. Equity, real estate and inflation-linked instruments are the usual routes to positive real returns over long periods.
+  - q: "Is some inflation good?"
+    a: >-
+      Moderate, stable inflation (the RBI targets 4% ± 2%) is considered healthy — it encourages spending and investment and gives wages room to adjust. The planning problem is not inflation existing, but portfolios that ignore it.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('p', 'Amount (today)', '₹', 1000, 100000000, 1000, 100000, '₹1k', '₹10 Cr') }}
+    {{ m.field('r', 'Inflation rate (p.a.)', '%', 1, 15, 0.5, 6, '1%', '15%') }}
+    {{ m.field('n', 'Time period', 'years', 1, 50, 1, 15, '1 yr', '50 yrs') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Future cost of today's <span id="out-amt-label">amount</span></div><div class="v" id="out-fc">—</div><div class="sub" id="out-fc-sub"></div></div>
+      <div class="stat"><div class="k">Buying power of the same amount</div><div class="v neg" id="out-pv">—</div><div class="sub">in today's terms</div></div>
+      <div class="stat"><div class="k">Purchasing power lost</div><div class="v" id="out-loss">—</div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-inf"></canvas></div>
+    <p class="chart-note">Rising cost of the same expense vs the shrinking value of the same rupees.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year table</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>The two faces of inflation</h2>
+  <p>Every inflation question is one of two directions. <strong>Forward:</strong> an expense of ₹1,00,000 today will cost about ₹2,39,656 in 15 years at 6% — relevant when sizing future goals like education, weddings or retirement. <strong>Backward:</strong> ₹1,00,000 you receive 15 years from now will buy only what about ₹41,727 buys today — relevant when judging maturity values of insurance policies, FDs and pension plans. Both numbers come from the same formula, applied in opposite directions.</p>
+
+  <h2>Formulas</h2>
+  <div class="formula">Future cost = P × (1 + i)<sup>n</sup> &nbsp; · &nbsp; Present value = P / (1 + i)<sup>n</sup></div>
+
+  <h2>Why this matters for your investments</h2>
+  <ul>
+    <li><strong>Judge every return in real terms.</strong> A 7% FD during 6% inflation grows your purchasing power just 1% a year — before tax.</li>
+    <li><strong>Long-dated promises need discounting.</strong> A policy maturing at "₹25 lakh after 25 years" is worth about ₹5.8 lakh in today's money at 6% inflation.</li>
+    <li><strong>Salary and rent negotiations</strong> below the inflation rate are real-terms pay cuts.</li>
+    <li><strong>Goal planning must inflate first.</strong> Use this calculator to convert today's costs to future costs, then feed that into the <a href="/sip-calculator/">SIP calculator</a> to plan the investment.</li>
+  </ul>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), i = CM.val('r') / 100, n = CM.val('n');
+    if (p <= 0 || n <= 0) return;
+    var fc = p * Math.pow(1 + i, n);
+    var pv = p / Math.pow(1 + i, n);
+
+    CM.set('out-amt-label', CM.compact(p));
+    CM.set('out-fc', CM.inr(fc));
+    CM.set('out-fc-sub', 'in ' + CM.num(n, 0) + ' years at ' + CM.num(i * 100, 1) + '% inflation');
+    CM.set('out-pv', CM.inr(pv));
+    CM.set('out-loss', CM.num((1 - pv / p) * 100, 1) + '%');
+
+    var labels = [], cost = [], value = [], rows = [];
+    for (var y = 0; y <= n; y++) {
+      var c = p * Math.pow(1 + i, y), v = p / Math.pow(1 + i, y);
+      labels.push('Y' + y); cost.push(c); value.push(v);
+      if (y > 0) rows.push([y, CM.inr(c), CM.inr(v)]);
+    }
+    CM.lineChart('chart-inf', labels, [
+      { label: 'Future cost', data: cost, role: '--s3' },
+      { label: 'Buying power', data: value, role: '--s1' }
+    ]);
+    CM.table('sched-out', ['Year', 'Cost of the same expense', 'Value of the same money'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>
