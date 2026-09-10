@@ -1,0 +1,130 @@
+---
+pagination:
+  data: cpiYears
+  size: 1
+  alias: y
+  addAllPagesToCollections: true
+permalink: "/rupee-value-in-{{ y.year }}/"
+layout: layouts/base.njk
+usesChart: true
+updated: 2026-09-10
+eleventyComputed:
+  title: "What is ₹100 from {{ y.year }} Worth Today? — Rupee Value Calculator"
+  description: "See what money from {{ y.year }} is worth today using actual recorded Indian inflation. Includes a conversion table and the full price history since {{ y.year }}."
+---
+{% import "macros.njk" as m %}
+{% set amounts = [100, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000] %}
+{% set mult = y.year | cpiRatio %}
+{% set avg = y.year | cpiCagr %}
+{% set thisYearRate = cpi.byYear[y.year].rate %}
+
+<div class="wrap page-pad">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <a href="/inflation-calculator/">Inflation Calculator</a> <span aria-hidden="true">›</span> <span>Rupee value in {{ y.year }}</span></nav>
+  <h1>What is money from {{ y.year }} worth today?</h1>
+  <p class="lede">₹100 in {{ y.year }} has the same buying power as about <strong>{{ 100 | cpiWorthInr(y.year) }}</strong> in {{ cpi.latest }}. Prices have risen <strong>{{ mult | round1 }}×</strong> since then — an average of <strong>{{ avg | round1 }}% a year</strong>.</p>
+  <p class="updated">Last updated: {{ updated | readableDate }} · Based on recorded inflation, not an assumed rate</p>
+
+  <div class="calc">
+    <div class="inputs">
+      {{ m.field('h-amt', 'Amount in ' + y.year, '₹', 1, 1000000000, 100, 100, '₹1', '₹100 Cr') }}
+      {{ m.field('h-from', 'From year', '', cpi.first, cpi.latest, 1, y.year, cpi.first, cpi.latest) }}
+      {{ m.field('h-to', 'To year', '', cpi.first, cpi.latest, 1, cpi.latest, cpi.first, cpi.latest) }}
+      <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+    </div>
+    <div class="results">
+      <div class="stat-row">
+        <div class="stat hero"><div class="k">Equivalent value</div><div class="v" id="h-out">—</div><div class="sub" id="h-out-sub"></div></div>
+        <div class="stat"><div class="k">Prices multiplied by</div><div class="v" id="h-mult">—</div></div>
+        <div class="stat"><div class="k">Average inflation</div><div class="v" id="h-cagr">—</div><div class="sub">per year, compounded</div></div>
+        <div class="stat"><div class="k">Buying power kept</div><div class="v neg" id="h-kept">—</div><div class="sub">of the original rupee</div></div>
+      </div>
+      <div class="chart-box"><canvas id="h-chart"></canvas></div>
+      <p class="chart-note">Equivalent value of the amount above, year by year.</p>
+    </div>
+  </div>
+
+  <article class="article">
+    <h2>Conversion table: {{ y.year }} rupees to {{ cpi.latest }}</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Amount in {{ y.year }}</th><th>Worth in {{ cpi.latest }}</th></tr></thead>
+        <tbody>
+          {% for a in amounts %}
+          <tr><th>{{ a | inr }}</th><td>{{ a | cpiWorthInr(y.year) }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What was happening in {{ y.year }}</h2>
+    <p>{{ y.note }}</p>
+    <p>Inflation during {{ y.year }} itself was <strong>{{ thisYearRate | round1 }}%</strong>. Across the {{ cpi.latest - y.year }} years since, prices have risen {{ mult | round1 }}× in total, which works out to an average of {{ avg | round1 }}% compounded annually. Put the other way round, a rupee from {{ y.year }} retains about {{ (100 / mult) | round1 }}% of its original buying power today.</p>
+
+    <h2>Why this matters</h2>
+    <p>Long-run numbers like these are the clearest argument against holding wealth in cash. Money left idle since {{ y.year }} would have lost roughly {{ (100 - 100 / mult) | round1 }}% of what it could buy, without a single rupee being spent. To merely stand still, savings had to earn {{ avg | round1 }}% a year after tax — and to actually grow, more than that.</p>
+    <p>The same logic applies forwards. If you are planning for a goal decades away, the sum you need is not today's price but tomorrow's. Our <a href="/inflation-calculator/">inflation calculator</a> projects that forward, and the <a href="/fire-calculator/">FIRE calculator</a> applies it to a full retirement corpus.</p>
+
+    <h2>A caveat worth stating</h2>
+    <div class="note">These figures use the national consumer price index — an average across a broad basket of goods and services. Individual categories diverge sharply from it: education, healthcare and urban property have typically risen faster than the headline rate, while electronics and telecom have often become cheaper in real terms. Treat this as a general measure of the rupee's value, not a price history for any specific item.</div>
+  </article>
+
+  <section class="related-section">
+    <h2>Other years</h2>
+    <div class="card-grid">
+      {% for o in cpiYears %}{% if o.year != y.year %}
+      <a class="calc-card" href="/rupee-value-in-{{ o.year }}/">
+        <span class="calc-card-icon" aria-hidden="true">🕰️</span>
+        <span class="calc-card-name">Rupee value in {{ o.year }}</span>
+        <span class="calc-card-short">₹100 in {{ o.year }} is worth {{ 100 | cpiWorthInr(o.year) }} today.</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+    <p><a href="/historical-inflation-india/">See the full year-by-year inflation record from {{ cpi.first }} →</a></p>
+  </section>
+</div>
+
+<script id="cpi-data" type="application/json">{{ cpi.series | dump | safe }}</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": "Inflation Calculator", "item": "{{ site.url }}/inflation-calculator/" },
+    { "@type": "ListItem", "position": 3, "name": "Rupee value in {{ y.year }}", "item": "{{ site.url }}{{ page.url }}" }
+  ]
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('cpi-data');
+  if (!el) return;
+  var series = JSON.parse(el.textContent);
+  var byYear = {};
+  series.forEach(function (r) { byYear[r.year] = r; });
+
+  function hRecalc() {
+    var amt = CM.val('h-amt');
+    var from = Math.round(CM.val('h-from'));
+    var to = Math.round(CM.val('h-to'));
+    var a = byYear[from], b = byYear[to];
+    if (!a || !b || amt <= 0) return;
+    var ratio = b.index / a.index;
+    CM.set('h-out', CM.inr(amt * ratio));
+    CM.set('h-out-sub', CM.inr(amt) + ' in ' + from + ' → ' + to);
+    CM.set('h-mult', (Math.round(ratio * 100) / 100) + '×');
+    var yrs = to - from;
+    CM.set('h-cagr', yrs === 0 ? '—' : (Math.round((Math.pow(ratio, 1 / yrs) - 1) * 1000) / 10) + '%');
+    CM.set('h-kept', (Math.round((100 / ratio) * 10) / 10) + '%');
+    var lo = Math.min(from, to), hi = Math.max(from, to);
+    var labels = [], data = [];
+    series.forEach(function (r) {
+      if (r.year >= lo && r.year <= hi) { labels.push(String(r.year)); data.push(amt * (r.index / a.index)); }
+    });
+    CM.lineChart('h-chart', labels, [{ label: 'Equivalent value', data: data, role: '--s1', fill: true }]);
+  }
+  CM.bind(['h-amt', 'h-from', 'h-to'], hRecalc);
+});
+</script>

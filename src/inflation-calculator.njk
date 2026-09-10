@@ -49,6 +49,33 @@ faqs:
   <div id="sched-out"></div>
 </details>
 
+
+<h2 id="historical">What was the rupee worth in the past?</h2>
+<p class="lede" style="margin-bottom:1rem;">The calculator above projects forward at an assumed rate. This one looks backwards using <strong>actual recorded Indian inflation</strong> — {{ cpi.first }} to {{ cpi.latest }}, from the World Bank consumer price series.</p>
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('h-amt', 'Amount', '₹', 1, 1000000000, 100, 100, '₹1', '₹100 Cr') }}
+    {{ m.field('h-from', 'In this year', '', cpi.first, cpi.latest, 1, 1990, cpi.first, cpi.latest) }}
+    {{ m.field('h-to', 'Is worth this much in', '', cpi.first, cpi.latest, 1, cpi.latest, cpi.first, cpi.latest) }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Equivalent value</div><div class="v" id="h-out">—</div><div class="sub" id="h-out-sub"></div></div>
+      <div class="stat"><div class="k">Prices multiplied by</div><div class="v" id="h-mult">—</div></div>
+      <div class="stat"><div class="k">Average inflation</div><div class="v" id="h-cagr">—</div><div class="sub">per year, compounded</div></div>
+      <div class="stat"><div class="k">Buying power kept</div><div class="v neg" id="h-kept">—</div><div class="sub">of the original rupee</div></div>
+    </div>
+    <div class="chart-box"><canvas id="h-chart"></canvas></div>
+    <p class="chart-note">Cumulative price level, {{ cpi.first }} = 100. Built from actual annual inflation.</p>
+  </div>
+</div>
+
+<p class="note" style="margin-bottom:2rem;">Data: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}. Figures are national averages — the price of any particular item may have moved very differently.</p>
+
+<script id="cpi-data" type="application/json">{{ cpi.series | dump | safe }}</script>
+
 <article class="article">
   <h2>The two faces of inflation</h2>
   <p>Every inflation question is one of two directions. <strong>Forward:</strong> an expense of ₹1,00,000 today will cost about ₹2,39,656 in 15 years at 6% — relevant when sizing future goals like education, weddings or retirement. <strong>Backward:</strong> ₹1,00,000 you receive 15 years from now will buy only what about ₹41,727 buys today — relevant when judging maturity values of insurance policies, FDs and pension plans. Both numbers come from the same formula, applied in opposite directions.</p>
@@ -63,6 +90,25 @@ faqs:
     <li><strong>Salary and rent negotiations</strong> below the inflation rate are real-terms pay cuts.</li>
     <li><strong>Goal planning must inflate first.</strong> Use this calculator to convert today's costs to future costs, then feed that into the <a href="/sip-calculator/">SIP calculator</a> to plan the investment.</li>
   </ul>
+
+  <h2>How much value the rupee has lost</h2>
+  <p>Using the recorded series, here is what a single ₹100 note from each decade would need to be today just to buy the same basket of goods:</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Year</th><th>₹100 then is worth</th><th>Prices ×</th><th>Avg. inflation since</th></tr></thead>
+      <tbody>
+        {% for y in [1960, 1970, 1980, 1990, 2000, 2010, 2020] %}
+        <tr>
+          <th>{{ y }}</th>
+          <td>{{ 100 | cpiWorthInr(y) }}</td>
+          <td>{{ y | cpiRatio | round1 }}×</td>
+          <td>{{ y | cpiCagr | round1 }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p>For the complete year-by-year record from {{ cpi.first }} onwards, including the 1974 oil-shock spike and the 1991 crisis, see <a href="/historical-inflation-india/">India's historical inflation rates</a>.</p>
 </article>
 
 <script>
@@ -92,5 +138,42 @@ document.addEventListener('DOMContentLoaded', function () {
     CM.table('sched-out', ['Year', 'Cost of the same expense', 'Value of the same money'], rows);
   }
   CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('cpi-data');
+  if (!el) return;
+  var series = JSON.parse(el.textContent);
+  var byYear = {};
+  series.forEach(function (r) { byYear[r.year] = r; });
+
+  function hRecalc() {
+    var amt = CM.val('h-amt');
+    var from = Math.round(CM.val('h-from'));
+    var to = Math.round(CM.val('h-to'));
+    var a = byYear[from], b = byYear[to];
+    if (!a || !b || amt <= 0) return;
+
+    var ratio = b.index / a.index;
+    CM.set('h-out', CM.inr(amt * ratio));
+    CM.set('h-out-sub', CM.inr(amt) + ' in ' + from + ' \u2192 ' + to);
+    CM.set('h-mult', (Math.round(ratio * 100) / 100) + '\u00d7');
+    var yrs = to - from;
+    CM.set('h-cagr', yrs === 0 ? '\u2014' : (Math.round((Math.pow(ratio, 1 / yrs) - 1) * 1000) / 10) + '%');
+    CM.set('h-kept', (Math.round((100 / ratio) * 10) / 10) + '%');
+
+    var lo = Math.min(from, to), hi = Math.max(from, to);
+    var labels = [], data = [];
+    series.forEach(function (r) {
+      if (r.year >= lo && r.year <= hi) {
+        labels.push(String(r.year));
+        data.push(amt * (r.index / a.index));
+      }
+    });
+    CM.lineChart('h-chart', labels, [{ label: 'Equivalent value', data: data, role: '--s1', fill: true }]);
+  }
+  CM.bind(['h-amt', 'h-from', 'h-to'], hRecalc);
 });
 </script>

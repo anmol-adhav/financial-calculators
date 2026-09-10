@@ -1,0 +1,132 @@
+---
+layout: layouts/base.njk
+permalink: /historical-inflation-india/
+usesChart: true
+updated: 2026-09-10
+title: "India Inflation Rate — Year by Year History (1960–2025)"
+description: "Complete year-by-year record of India's consumer price inflation from 1960 to 2025, with decade averages, the rupee's cumulative loss of value, and the full data table."
+---
+{% set decades = [
+  { from: 1960, to: 1969, label: "1960s" },
+  { from: 1970, to: 1979, label: "1970s" },
+  { from: 1980, to: 1989, label: "1980s" },
+  { from: 1990, to: 1999, label: "1990s" },
+  { from: 2000, to: 2009, label: "2000s" },
+  { from: 2010, to: 2019, label: "2010s" },
+  { from: 2020, to: 2025, label: "2020s so far" }
+] %}
+
+<div class="wrap page-pad">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <a href="/inflation-calculator/">Inflation Calculator</a> <span aria-hidden="true">›</span> <span>Historical inflation</span></nav>
+  <h1>India's inflation rate, year by year</h1>
+  <p class="lede">The complete consumer price inflation record for India from {{ cpi.first }} to {{ cpi.latest }} — {{ cpi.series.length }} years of data, the decade averages, and what it all did to the value of the rupee.</p>
+  <p class="updated">Last updated: {{ updated | readableDate }}</p>
+
+  <div class="calc" style="grid-template-columns:1fr;">
+    <div class="results">
+      <div class="stat-row">
+        <div class="stat hero"><div class="k">₹100 in {{ cpi.first }} is worth today</div><div class="v">{{ 100 | cpiWorthInr(cpi.first) }}</div><div class="sub">prices up {{ cpi.first | cpiRatio | round1 }}× since {{ cpi.first }}</div></div>
+        <div class="stat"><div class="k">Average inflation</div><div class="v">{{ cpi.first | cpiCagr | round1 }}%</div><div class="sub">per year since {{ cpi.first }}</div></div>
+        <div class="stat"><div class="k">Highest year</div><div class="v">28.6%</div><div class="sub">1974, oil shock</div></div>
+        <div class="stat"><div class="k">Lowest year</div><div class="v pos">−7.6%</div><div class="sub">1976, deflation</div></div>
+      </div>
+      <div class="chart-box" style="height:300px"><canvas id="rate-chart"></canvas></div>
+      <p class="chart-note">Annual consumer price inflation, {{ cpi.first }}–{{ cpi.latest }}.</p>
+    </div>
+  </div>
+
+  <article class="article">
+    <h2>Inflation by decade</h2>
+    <p>Averaged over ten-year blocks, India's inflation story splits cleanly into an unstable first half and a far calmer recent period:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Decade</th><th>Average inflation</th><th>Prices rose</th><th>₹100 at the start became</th></tr></thead>
+        <tbody>
+          {% for d in decades %}
+          <tr>
+            <th>{{ d.label }}</th>
+            <td>{{ d.from | cpiCagr(d.to) | round1 }}%</td>
+            <td>{{ d.from | cpiRatio(d.to) | round2 }}×</td>
+            <td>{{ 100 | cpiWorthInr(d.from, d.to) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>The three inflationary eras</h2>
+    <p><strong>1960s–1970s: shocks and scarcity.</strong> The most volatile stretch in the series. Drought, two wars, and above all the 1973 oil crisis drove inflation to 16.9% in 1973 and 28.6% in 1974 — the highest annual figure India has recorded. It was followed immediately by the only real deflation in the data, −7.6% in 1976.</p>
+    <p><strong>1980s–1990s: persistent high single digits.</strong> Inflation settled into a chronic 7–10% band. The 1991 balance-of-payments crisis pushed it to 13.9% as the rupee was devalued and the economy opened up.</p>
+    <p><strong>2000s onwards: gradual taming.</strong> The 2000s were calmer, interrupted by a sharp episode around 2009–2013 when inflation again ran into double digits. Since the RBI formally adopted inflation targeting in 2016 — a 4% target with a 2% band either side — the rate has been the most stable in India's modern history.</p>
+
+    <h2>What this did to the rupee</h2>
+    <p>Compounded over {{ cpi.latest - cpi.first }} years, the cumulative effect is severe. ₹100 from {{ cpi.first }} buys today what {{ 100 | cpiWorthInr(cpi.first) }} buys — meaning the {{ cpi.first }} rupee retains roughly {{ (100 / (cpi.first | cpiRatio)) | round2 }}% of its purchasing power. Even from 1990, money has lost about {{ (100 - 100 / (1990 | cpiRatio)) | round1 }}% of what it could buy.</p>
+    <p>To see the figure for any particular year, use the <a href="/inflation-calculator/">inflation calculator</a> or pick a year below.</p>
+
+    <h2>Full data table</h2>
+    <p>Every year in the series, with the annual rate and what ₹100 from that year is worth in {{ cpi.latest }}:</p>
+  </article>
+
+  <details class="sched" open>
+    <summary>All years, {{ cpi.first }}–{{ cpi.latest }}</summary>
+    <div class="sched-scroll">
+      <table class="cm-table">
+        <thead><tr><th>Year</th><th>Inflation</th><th>₹100 then → {{ cpi.latest }}</th><th>Prices ×</th></tr></thead>
+        <tbody>
+          {% for r in cpi.series | reverse %}
+          <tr>
+            <td>{{ r.year }}</td>
+            <td>{{ r.rate | round1 }}%</td>
+            <td>{{ 100 | cpiWorthInr(r.year) }}</td>
+            <td>{{ r.year | cpiRatio | round2 }}×</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <p class="note">Source: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}. Figures are national averages across a broad basket; individual categories such as education, healthcare and property have often risen considerably faster.</p>
+
+  <section class="related-section">
+    <h2>Value of money in a specific year</h2>
+    <div class="card-grid">
+      {% for o in cpiYears %}
+      <a class="calc-card" href="/rupee-value-in-{{ o.year }}/">
+        <span class="calc-card-icon" aria-hidden="true">🕰️</span>
+        <span class="calc-card-name">Rupee value in {{ o.year }}</span>
+        <span class="calc-card-short">₹100 in {{ o.year }} is worth {{ 100 | cpiWorthInr(o.year) }} today.</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<script id="cpi-data" type="application/json">{{ cpi.series | dump | safe }}</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "India consumer price inflation, {{ cpi.first }}–{{ cpi.latest }}",
+  "description": "Annual consumer price inflation rates for India with a chained price index, covering {{ cpi.series.length }} years.",
+  "url": "{{ site.url }}{{ page.url }}",
+  "temporalCoverage": "{{ cpi.first }}/{{ cpi.latest }}",
+  "spatialCoverage": "India",
+  "isAccessibleForFree": true,
+  "creator": { "@type": "Organization", "name": "{{ site.name }}" },
+  "isBasedOn": "{{ cpi.sourceUrl }}"
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('cpi-data');
+  if (!el || typeof Chart === 'undefined') return;
+  var series = JSON.parse(el.textContent);
+  CM.lineChart('rate-chart',
+    series.map(function (r) { return String(r.year); }),
+    [{ label: 'Annual inflation %', data: series.map(function (r) { return r.rate; }), role: '--s1', fill: true }],
+    { money: false });
+});
+</script>

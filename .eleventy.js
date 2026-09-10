@@ -58,6 +58,32 @@ module.exports = function (eleventyConfig) {
     emiFor(p, rate, years) * Math.round(years * 12) - p
   );
 
+  // --- Historical rupee value, from the real World Bank CPI series
+  const cpi = require("./src/_data/cpi.js");
+  const cpiRatio = (fromYear, toYear) => {
+    const a = cpi.byYear[fromYear], b = cpi.byYear[toYear || cpi.latest];
+    if (!a || !b) return null;
+    return b.index / a.index;
+  };
+  eleventyConfig.addFilter("cpiRatio", cpiRatio);
+  eleventyConfig.addFilter("cpiWorth", (amount, fromYear, toYear) => {
+    const r = cpiRatio(fromYear, toYear);
+    return r === null ? null : amount * r;
+  });
+  eleventyConfig.addFilter("cpiWorthInr", (amount, fromYear, toYear) => {
+    const r = cpiRatio(fromYear, toYear);
+    return r === null ? "—" : inr(amount * r);
+  });
+  // Average annual inflation between two years (CAGR of the index)
+  eleventyConfig.addFilter("cpiCagr", (fromYear, toYear) => {
+    const to = toYear || cpi.latest;
+    const r = cpiRatio(fromYear, to);
+    if (r === null || to === fromYear) return null;
+    return (Math.pow(r, 1 / (to - fromYear)) - 1) * 100;
+  });
+  eleventyConfig.addFilter("round1", (n) => (n == null ? "—" : (Math.round(n * 10) / 10).toString()));
+  eleventyConfig.addFilter("round2", (n) => (n == null ? "—" : (Math.round(n * 100) / 100).toString()));
+
   return {
     dir: {
       input: "src",

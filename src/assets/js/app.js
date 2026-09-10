@@ -4,7 +4,8 @@
 
   var CM = (window.CM = {});
   var charts = {};
-  var recalcFn = null;
+  var recalcFns = [];
+  function recalcAll() { recalcFns.forEach(function (f) { f(); }); }
 
   /* ---------- formatting ---------- */
   CM.inr = function (n, dp) {
@@ -46,7 +47,7 @@
   var urlTimer = null;
 
   CM.bind = function (ids, recalc) {
-    recalcFn = recalc;
+    recalcFns.push(recalc);
     var params = new URLSearchParams(location.search);
 
     ids.forEach(function (id) {
@@ -97,7 +98,7 @@
     });
 
     function fire() {
-      recalcFn();
+      recalc();
       clearTimeout(urlTimer);
       urlTimer = setTimeout(updateUrl, 400);
     }
@@ -111,7 +112,7 @@
       history.replaceState(null, "", qs ? "?" + qs : location.pathname);
     }
 
-    recalcFn();
+    recalc();
   };
 
   CM.val = function (id) {
@@ -136,7 +137,7 @@
         b.classList.add("on");
         state.value = b.dataset.val;
         if (onChange) onChange(b.dataset.val);
-        if (recalcFn) recalcFn();
+        recalcAll();
       });
     });
     return state;
@@ -301,7 +302,7 @@
         document.documentElement.setAttribute("data-theme", next);
         localStorage.setItem("cm-theme", next);
         paintToggle();
-        if (recalcFn) recalcFn(); // rebuild charts with new palette
+        recalcAll(); // rebuild charts with new palette
       });
     }
   });

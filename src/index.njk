@@ -32,6 +32,22 @@ description: "Free, fast and accurate financial calculators for India — EMI, S
   </div>
   {% endfor %}
 
+  <p class="cat-label">Rupee value over time — built on actual recorded inflation</p>
+  <div class="card-grid">
+    <a class="calc-card" href="/historical-inflation-india/">
+      <span class="calc-card-icon" aria-hidden="true">📊</span>
+      <span class="calc-card-name">India inflation history</span>
+      <span class="calc-card-short">Every year from {{ cpi.first }} to {{ cpi.latest }}, with decade averages and the full data table.</span>
+    </a>
+    {% for o in cpiYears %}
+    <a class="calc-card" href="/rupee-value-in-{{ o.year }}/">
+      <span class="calc-card-icon" aria-hidden="true">🕰️</span>
+      <span class="calc-card-name">Rupee value in {{ o.year }}</span>
+      <span class="calc-card-short">₹100 in {{ o.year }} is worth {{ 100 | cpiWorthInr(o.year) }} today.</span>
+    </a>
+    {% endfor %}
+  </div>
+
   <p class="cat-label">Savings goals — how much to invest each month</p>
   <div class="card-grid">
     {% for g in sipGoals %}
