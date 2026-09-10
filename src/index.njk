@@ -32,6 +32,28 @@ description: "Free, fast and accurate financial calculators for India — EMI, S
   </div>
   {% endfor %}
 
+  <p class="cat-label">Savings goals — how much to invest each month</p>
+  <div class="card-grid">
+    {% for g in sipGoals %}
+    <a class="calc-card" href="/sip-for-{{ g.slug }}/">
+      <span class="calc-card-icon" aria-hidden="true">🎯</span>
+      <span class="calc-card-name">SIP for {{ g.label }}</span>
+      <span class="calc-card-short">The monthly SIP needed to reach {{ g.label }}, for every tenure and return rate.</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <p class="cat-label">Home loan EMI by amount</p>
+  <div class="card-grid">
+    {% for l in loanAmounts %}
+    <a class="calc-card" href="/emi-for-{{ l.slug }}-home-loan/">
+      <span class="calc-card-icon" aria-hidden="true">🏠</span>
+      <span class="calc-card-name">{{ l.label }} home loan EMI</span>
+      <span class="calc-card-short">EMI, total interest and the salary needed for a {{ l.label }} loan.</span>
+    </a>
+    {% endfor %}
+  </div>
+
   <section class="prose" style="margin-top:3rem;">
     <h2>Why CalculateMoney?</h2>
     <p><strong>Accurate methods, stated openly.</strong> Every calculator explains its formula and assumptions on the page — the FD calculator compounds quarterly like Indian banks do, the RD calculator computes per-instalment interest the way the post office does, and the income tax calculator applies the Section 87A rebate, surcharge and marginal relief exactly as the Finance Act 2025 prescribes.</p>

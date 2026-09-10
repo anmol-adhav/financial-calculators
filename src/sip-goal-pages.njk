@@ -1,0 +1,194 @@
+---
+pagination:
+  data: sipGoals
+  size: 1
+  alias: goal
+permalink: "/sip-for-{{ goal.slug }}/"
+layout: layouts/base.njk
+usesChart: true
+updated: 2026-09-10
+eleventyComputed:
+  title: "How Much SIP for {{ goal.label }}? Monthly Investment Calculator"
+  description: "Find out exactly how much monthly SIP you need to reach {{ goal.label }}. See the amount required for every tenure and return rate, with a live calculator."
+---
+{% import "macros.njk" as m %}
+{% set tenures = [5, 10, 15, 20, 25, 30] %}
+{% set rates = [8, 10, 12, 14] %}
+{% set heroSip = goal.amount | sipFor(goal.headlineYears, 12) %}
+{% set heroInvested = goal.amount | sipInvested(goal.headlineYears, 12) %}
+
+<div class="wrap page-pad">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <a href="/sip-calculator/">SIP Calculator</a> <span aria-hidden="true">›</span> <span>SIP for {{ goal.label }}</span></nav>
+  <h1>How much SIP do you need for {{ goal.label }}?</h1>
+  <p class="lede">To reach <strong>{{ goal.label }}</strong> in {{ goal.headlineYears }} years at an assumed 12% annual return, you need to invest about <strong>{{ heroSip | inr }} a month</strong>. Adjust the timeline and return below to find your own number.</p>
+  <p class="updated">Last updated: {{ updated | readableDate }}</p>
+
+  <div class="calc">
+    <div class="inputs">
+      {{ m.field('target', 'Target amount', '₹', 100000, 100000000, 100000, goal.amount, '₹1L', '₹10 Cr') }}
+      {{ m.field('n', 'Years to reach it', 'years', 1, 40, 1, goal.headlineYears, '1 yr', '40 yrs') }}
+      {{ m.field('r', 'Expected return (p.a.)', '%', 1, 30, 0.5, 12, '1%', '30%') }}
+      <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+    </div>
+    <div class="results">
+      <div class="stat-row">
+        <div class="stat hero"><div class="k">Monthly SIP needed</div><div class="v" id="out-sip">—</div><div class="sub" id="out-sip-sub"></div></div>
+        <div class="stat"><div class="k">You invest</div><div class="v" id="out-inv">—</div></div>
+        <div class="stat"><div class="k">Growth adds</div><div class="v pos" id="out-gain">—</div></div>
+        <div class="stat"><div class="k">Lumpsum instead</div><div class="v" id="out-lump">—</div><div class="sub">one-time, today</div></div>
+      </div>
+      <div class="chart-box"><canvas id="chart-growth"></canvas></div>
+      <p class="chart-note">How the corpus builds year by year at your chosen SIP.</p>
+    </div>
+  </div>
+
+  <article class="article">
+    <h2>The monthly SIP you need for {{ goal.label }}</h2>
+    <p>{{ goal.context }}</p>
+    <p>The table below is the practical answer to the question. Every cell is the monthly SIP required to reach {{ goal.label }} for that combination of tenure and annual return — read down for more time, across for a different return assumption.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Time horizon</th>
+            {% for r in rates %}<th>{{ r }}% return</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tenures %}
+          <tr>
+            <th>{{ t }} years</th>
+            {% for r in rates %}<td>{{ goal.amount | sipForInr(t, r) }}</td>{% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="chart-note">Monthly SIP required to accumulate {{ goal.label }}. Assumes a constant return and investment at the start of each month.</p>
+
+    <h2>What the numbers tell you</h2>
+    <p>Two patterns show up clearly in that table. First, <strong>time matters more than returns</strong>. Moving from 10 years to 20 years at 12% cuts the required monthly SIP by far more than moving from 8% to 14% at a fixed tenure does. You control your start date; you do not control the market.</p>
+    <p>Second, <strong>the growth share rises sharply with time</strong>. At {{ goal.headlineYears }} years and 12%, you contribute roughly {{ heroInvested | compactInr }} of the {{ goal.label }} yourself — compounding supplies the rest. Over a 30-year horizon your own contribution becomes a small minority of the final corpus.</p>
+
+    <h2>How this is calculated</h2>
+    <p>This is the standard future-value-of-an-annuity formula, rearranged to solve for the instalment rather than the maturity value:</p>
+    <div class="formula">P = FV ÷ [ ((1 + i)<sup>n</sup> − 1) ÷ i × (1 + i) ]</div>
+    <ul>
+      <li><strong>FV</strong> — your target, {{ goal.label }}</li>
+      <li><strong>P</strong> — the monthly SIP you need to find</li>
+      <li><strong>i</strong> — monthly return = annual return ÷ 12 ÷ 100</li>
+      <li><strong>n</strong> — number of monthly instalments</li>
+    </ul>
+
+    <h2>A note on inflation</h2>
+    <div class="note">{{ goal.reality }}</div>
+
+    <h2>Ways to get there faster</h2>
+    <ul>
+      <li><strong>Step up your SIP each year.</strong> Raising the instalment with your salary is the single most effective lever available to a salaried investor — see the <a href="/step-up-sip-calculator/">Step-Up SIP calculator</a> for the difference it makes.</li>
+      <li><strong>Invest bonuses as lumpsums.</strong> A one-time addition early in the journey compounds for the entire remaining period.</li>
+      <li><strong>Start now, adjust later.</strong> Beginning with a smaller SIP today beats waiting for the "right" amount — the table above shows what each year of delay costs.</li>
+      <li><strong>Keep costs low.</strong> Direct plans avoid distributor commission, which typically adds around 0.5–1% a year to your return compared with regular plans.</li>
+    </ul>
+  </article>
+
+  <section class="faq-section" id="faqs">
+    <h2>Frequently asked questions</h2>
+    {% for f in goal.faqs %}
+    <details class="faq">
+      <summary>{{ f.q }}</summary>
+      <p>{{ f.a }}</p>
+    </details>
+    {% endfor %}
+  </section>
+
+  <section class="related-section">
+    <h2>Related calculators</h2>
+    <div class="card-grid">
+      {% for slug in ["sip-calculator", "step-up-sip-calculator", "lumpsum-calculator", "fire-calculator"] %}
+        {% set rc = calcs | calcBySlug(slug) %}
+        {% if rc %}
+        <a class="calc-card" href="/{{ rc.slug }}/">
+          <span class="calc-card-icon" aria-hidden="true">{{ rc.icon }}</span>
+          <span class="calc-card-name">{{ rc.name }}</span>
+          <span class="calc-card-short">{{ rc.short }}</span>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <h2>Other savings targets</h2>
+    <div class="card-grid">
+      {% for g in sipGoals %}{% if g.slug != goal.slug %}
+      <a class="calc-card" href="/sip-for-{{ g.slug }}/">
+        <span class="calc-card-icon" aria-hidden="true">🎯</span>
+        <span class="calc-card-name">SIP for {{ g.label }}</span>
+        <span class="calc-card-short">Monthly investment needed to reach {{ g.label }}.</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+  </section>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": "SIP Calculator", "item": "{{ site.url }}/sip-calculator/" },
+    { "@type": "ListItem", "position": 3, "name": "SIP for {{ goal.label }}", "item": "{{ site.url }}{{ page.url }}" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for f in goal.faqs %}
+    {
+      "@type": "Question",
+      "name": {{ f.q | dump | safe }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ f.a | dump | safe }} }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var target = CM.val('target'), yrs = CM.val('n'), rate = CM.val('r');
+    var i = rate / 1200, n = Math.round(yrs * 12);
+    if (target <= 0 || n <= 0) return;
+
+    var sip = i === 0 ? target / n : target / (((Math.pow(1 + i, n) - 1) / i) * (1 + i));
+    var invested = sip * n;
+    var lump = target / Math.pow(1 + rate / 100, yrs);
+
+    CM.set('out-sip', CM.inr(sip));
+    CM.set('out-sip-sub', 'for ' + CM.num(yrs, 0) + ' years at ' + CM.num(rate, 1) + '%');
+    CM.set('out-inv', CM.inr(invested));
+    CM.set('out-gain', CM.inr(target - invested));
+    CM.set('out-lump', CM.inr(lump));
+
+    var labels = [], valSeries = [], invSeries = [], bal = 0;
+    for (var mth = 1; mth <= n; mth++) {
+      bal = (bal + sip) * (1 + i);
+      if (mth % 12 === 0 || mth === n) {
+        labels.push('Y' + Math.ceil(mth / 12));
+        valSeries.push(bal);
+        invSeries.push(sip * mth);
+      }
+    }
+    CM.lineChart('chart-growth', labels, [
+      { label: 'Corpus', data: valSeries, role: '--s1', fill: true },
+      { label: 'Invested', data: invSeries, role: '--s2' }
+    ]);
+  }
+  CM.bind(['target', 'n', 'r'], recalc);
+});
+</script>

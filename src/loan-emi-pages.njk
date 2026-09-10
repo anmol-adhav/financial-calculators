@@ -1,0 +1,218 @@
+---
+pagination:
+  data: loanAmounts
+  size: 1
+  alias: loan
+permalink: "/emi-for-{{ loan.slug }}-home-loan/"
+layout: layouts/base.njk
+usesChart: true
+updated: 2026-09-10
+eleventyComputed:
+  title: "EMI for {{ loan.label }} Home Loan — Monthly Payment & Interest"
+  description: "EMI for a {{ loan.label }} home loan at every rate and tenure, with total interest, salary needed and a live amortization schedule."
+---
+{% import "macros.njk" as m %}
+{% set tenures = [10, 15, 20, 25, 30] %}
+{% set rates = [8, 8.5, 9, 9.5] %}
+{% set heroEmi = loan.amount | emiFor(loan.headlineRate, loan.headlineYears) %}
+{% set heroInterest = loan.amount | emiTotalInterest(loan.headlineRate, loan.headlineYears) %}
+
+<div class="wrap page-pad">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">›</span> <a href="/emi-calculator/">EMI Calculator</a> <span aria-hidden="true">›</span> <span>{{ loan.label }} home loan</span></nav>
+  <h1>EMI for a {{ loan.label }} home loan</h1>
+  <p class="lede">A {{ loan.label }} home loan at {{ loan.headlineRate }}% for {{ loan.headlineYears }} years costs about <strong>{{ heroEmi | inr }} a month</strong>, with roughly <strong>{{ heroInterest | compactInr }}</strong> paid in interest over the full tenure. Change the rate and tenure below to match your own offer.</p>
+  <p class="updated">Last updated: {{ updated | readableDate }}</p>
+
+  <div class="calc">
+    <div class="inputs">
+      {{ m.field('p', 'Loan amount', '₹', 100000, 100000000, 100000, loan.amount, '₹1L', '₹10 Cr') }}
+      {{ m.field('r', 'Interest rate (p.a.)', '%', 5, 15, 0.05, loan.headlineRate, '5%', '15%') }}
+      {{ m.field('n', 'Tenure', 'years', 1, 30, 1, loan.headlineYears, '1 yr', '30 yrs') }}
+      <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+    </div>
+    <div class="results">
+      <div class="stat-row">
+        <div class="stat hero"><div class="k">Monthly EMI</div><div class="v" id="out-emi">—</div><div class="sub" id="out-emi-sub"></div></div>
+        <div class="stat"><div class="k">Total interest</div><div class="v" id="out-int">—</div></div>
+        <div class="stat"><div class="k">Total repayment</div><div class="v" id="out-total">—</div></div>
+        <div class="stat"><div class="k">Income needed</div><div class="v" id="out-income">—</div><div class="sub">EMI ≈ 40% of take-home</div></div>
+      </div>
+      <div class="chart-box" style="height:180px"><canvas id="chart-split"></canvas></div>
+      <div class="chart-box"><canvas id="chart-bal"></canvas></div>
+      <p class="chart-note">Outstanding balance at the end of each year.</p>
+    </div>
+  </div>
+
+  <details class="sched">
+    <summary>Amortization schedule (year by year)</summary>
+    <div id="sched-out"></div>
+  </details>
+
+  <article class="article">
+    <h2>What a {{ loan.label }} home loan really costs</h2>
+    <p>{{ loan.context }}</p>
+    <p>The table below shows the monthly EMI for a {{ loan.label }} loan at the rates lenders are realistically quoting, across every common tenure. Find your offered rate along the top and your tenure down the side.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Tenure</th>
+            {% for r in rates %}<th>{{ r }}%</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tenures %}
+          <tr>
+            <th>{{ t }} years</th>
+            {% for r in rates %}<td>{{ loan.amount | emiForInr(r, t) }}</td>{% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="chart-note">Monthly EMI on a {{ loan.label }} loan, reducing-balance method.</p>
+
+    <h2>Total interest by tenure</h2>
+    <p>The EMI is only half the story. Stretching the tenure lowers the monthly figure but raises what the loan costs in total — often dramatically:</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Tenure at {{ loan.headlineRate }}%</th><th>Monthly EMI</th><th>Total interest</th><th>Total repaid</th></tr>
+        </thead>
+        <tbody>
+          {% for t in tenures %}
+          <tr>
+            <th>{{ t }} years</th>
+            <td>{{ loan.amount | emiForInr(loan.headlineRate, t) }}</td>
+            <td>{{ loan.amount | emiTotalInterest(loan.headlineRate, t) | compactInr }}</td>
+            <td>{{ (loan.amount + (loan.amount | emiTotalInterest(loan.headlineRate, t))) | compactInr }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What salary do you need?</h2>
+    <p>Lenders generally want your total EMIs to stay within 40–50% of net monthly income. For a {{ loan.label }} loan at {{ loan.headlineRate }}% over {{ loan.headlineYears }} years, that points to a take-home income of roughly <strong>{{ loan.incomeNeeded }} a month</strong>, assuming you carry no other significant EMIs. A co-applicant's income can be combined to improve eligibility, which is why joint applications are common.</p>
+
+    <h2>How the EMI is calculated</h2>
+    <div class="formula">EMI = P × r × (1 + r)<sup>n</sup> / ((1 + r)<sup>n</sup> − 1)</div>
+    <ul>
+      <li><strong>P</strong> — {{ loan.label }}, the loan amount</li>
+      <li><strong>r</strong> — monthly rate = annual rate ÷ 12 ÷ 100</li>
+      <li><strong>n</strong> — tenure in months</li>
+    </ul>
+    <p>This is the reducing-balance method every Indian bank and housing finance company uses: interest each month is charged only on the outstanding principal, which falls with every payment.</p>
+
+    <h2>Reducing what you pay</h2>
+    <ul>
+      <li><strong>Prepay in the early years.</strong> The interest share of each EMI is highest at the start, so early prepayments buy far more than late ones.</li>
+      <li><strong>Keep the EMI, cut the tenure.</strong> When you prepay, choosing to shorten the tenure rather than reduce the EMI saves substantially more interest.</li>
+      <li><strong>Negotiate or transfer.</strong> Floating-rate home loans for individuals carry no prepayment or foreclosure penalty under RBI rules, so a balance transfer to a cheaper lender is always on the table.</li>
+      <li><strong>Compare on the reducing-balance rate</strong>, never a flat rate — a 10% flat rate is roughly equivalent to 18–19% reducing balance.</li>
+    </ul>
+  </article>
+
+  <section class="faq-section" id="faqs">
+    <h2>Frequently asked questions</h2>
+    {% for f in loan.faqs %}
+    <details class="faq">
+      <summary>{{ f.q }}</summary>
+      <p>{{ f.a }}</p>
+    </details>
+    {% endfor %}
+  </section>
+
+  <section class="related-section">
+    <h2>Other loan amounts</h2>
+    <div class="card-grid">
+      {% for l in loanAmounts %}{% if l.slug != loan.slug %}
+      <a class="calc-card" href="/emi-for-{{ l.slug }}-home-loan/">
+        <span class="calc-card-icon" aria-hidden="true">🏠</span>
+        <span class="calc-card-name">{{ l.label }} home loan EMI</span>
+        <span class="calc-card-short">Monthly EMI, total interest and salary needed for a {{ l.label }} loan.</span>
+      </a>
+      {% endif %}{% endfor %}
+    </div>
+
+    <h2>Related calculators</h2>
+    <div class="card-grid">
+      {% for slug in ["emi-calculator", "income-tax-calculator", "sip-calculator"] %}
+        {% set rc = calcs | calcBySlug(slug) %}
+        {% if rc %}
+        <a class="calc-card" href="/{{ rc.slug }}/">
+          <span class="calc-card-icon" aria-hidden="true">{{ rc.icon }}</span>
+          <span class="calc-card-name">{{ rc.name }}</span>
+          <span class="calc-card-short">{{ rc.short }}</span>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": "EMI Calculator", "item": "{{ site.url }}/emi-calculator/" },
+    { "@type": "ListItem", "position": 3, "name": "{{ loan.label }} home loan EMI", "item": "{{ site.url }}{{ page.url }}" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for f in loan.faqs %}
+    {
+      "@type": "Question",
+      "name": {{ f.q | dump | safe }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ f.a | dump | safe }} }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var p = CM.val('p'), rate = CM.val('r'), yrs = CM.val('n');
+    var r = rate / 1200, n = Math.round(yrs * 12);
+    if (p <= 0 || n <= 0) return;
+
+    var emi = r === 0 ? p / n : p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    var total = emi * n, totInt = total - p;
+
+    CM.set('out-emi', CM.inr(emi));
+    CM.set('out-emi-sub', 'for ' + CM.num(yrs, 0) + ' years at ' + CM.num(rate, 2) + '%');
+    CM.set('out-int', CM.inr(totInt));
+    CM.set('out-total', CM.inr(total));
+    CM.set('out-income', CM.inr(emi / 0.4));
+
+    CM.doughnut('chart-split', ['Principal', 'Interest'], [p, totInt], ['--s1', '--s3']);
+
+    var bal = p, labels = ['Y0'], balSeries = [p], rows = [];
+    var yInt = 0, yPr = 0, year = 1;
+    for (var mth = 1; mth <= n; mth++) {
+      var i = bal * r, pr = emi - i;
+      bal = Math.max(0, bal - pr);
+      yInt += i; yPr += pr;
+      if (mth % 12 === 0 || mth === n) {
+        labels.push('Y' + year); balSeries.push(bal);
+        rows.push([year, CM.inr(yPr), CM.inr(yInt), CM.inr(bal)]);
+        yInt = 0; yPr = 0; year++;
+      }
+    }
+    CM.lineChart('chart-bal', labels, [{ label: 'Outstanding balance', data: balSeries, role: '--s1', fill: true }]);
+    CM.table('sched-out', ['Year', 'Principal paid', 'Interest paid', 'Balance'], rows);
+  }
+  CM.bind(['p', 'r', 'n'], recalc);
+});
+</script>
