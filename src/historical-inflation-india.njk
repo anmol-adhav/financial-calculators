@@ -86,7 +86,7 @@ description: "Complete year-by-year record of India's consumer price inflation f
     </div>
   </details>
 
-  <p class="note">Source: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}. Figures are national averages across a broad basket; individual categories such as education, healthcare and property have often risen considerably faster.</p>
+  <p class="note">Source: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}, used under <a href="{{ cpi.licenseUrl }}" rel="license nofollow noopener" target="_blank">{{ cpi.license }}</a>. {{ cpi.modification }} Figures are national averages across a broad basket; individual categories such as education, healthcare and property have often risen considerably faster.</p>
 
   <section class="related-section">
     <h2>Value of money in a specific year</h2>
@@ -114,8 +114,24 @@ description: "Complete year-by-year record of India's consumer price inflation f
   "temporalCoverage": "{{ cpi.first }}/{{ cpi.latest }}",
   "spatialCoverage": "India",
   "isAccessibleForFree": true,
+  "license": "{{ cpi.licenseUrl }}",
+  "creditText": {{ cpi.source | dump | safe }},
   "creator": { "@type": "Organization", "name": "{{ site.name }}" },
-  "isBasedOn": "{{ cpi.sourceUrl }}"
+  "isBasedOn": "{{ cpi.sourceUrl }}",
+  "dateModified": "{{ updated | isoDate }}",
+  "keywords": [
+    "India inflation rate",
+    "consumer price index India",
+    "historical inflation",
+    "rupee value",
+    "CPI"
+  ],
+  "measurementTechnique": "Consumer price index, annual percentage change",
+  "variableMeasured": {
+    "@type": "PropertyValue",
+    "name": "Annual consumer price inflation",
+    "unitText": "percent per year"
+  }
 }
 </script>
 

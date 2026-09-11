@@ -89,5 +89,10 @@ module.exports = {
   latest,
   source: "World Bank — Inflation, consumer prices (annual %), India (FP.CPI.TOTL.ZG)",
   sourceUrl: "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=IN",
-  retrieved: "September 2026"
+  retrieved: "September 2026",
+  license: "CC BY 4.0",
+  licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+  // CC BY 4.0 requires stating that the source data was modified
+  modification:
+    "Annual inflation rates are reproduced unchanged; the chained price index is derived from them by CalculateMoney."
 };

@@ -72,7 +72,7 @@ faqs:
   </div>
 </div>
 
-<p class="note" style="margin-bottom:2rem;">Data: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}. Figures are national averages — the price of any particular item may have moved very differently.</p>
+<p class="note" style="margin-bottom:2rem;">Data: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}, used under <a href="{{ cpi.licenseUrl }}" rel="license nofollow noopener" target="_blank">{{ cpi.license }}</a>. {{ cpi.modification }} Figures are national averages — the price of any particular item may have moved very differently.</p>
 
 <script id="cpi-data" type="application/json">{{ cpi.series | dump | safe }}</script>
 
