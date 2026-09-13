@@ -21,6 +21,9 @@
 })();
 </script>
 <link rel="stylesheet" href="/assets/css/style.css">
+{% if site.adsensePub %}<meta name="google-adsense-account" content="ca-{{ site.adsensePub }}">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-{{ site.adsensePub }}" crossorigin="anonymous"></script>
+{% endif %}
 {% if usesChart %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>{% endif %}
 </head>
 <body>
