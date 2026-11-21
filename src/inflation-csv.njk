@@ -1,0 +1,8 @@
+---
+permalink: /india-inflation-rates.csv
+eleventyExcludeFromCollections: true
+---
+year,inflation_rate_percent,price_index_1960_base,value_of_100_in_{{ cpi.latest }}
+{%- for r in cpi.series %}
+{{ r.year }},{{ r.rate }},{{ r.index | round2 }},{{ (100 | cpiWorth(r.year)) | round2 }}
+{%- endfor %}

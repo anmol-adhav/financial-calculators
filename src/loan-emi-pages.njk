@@ -95,6 +95,29 @@ eleventyComputed:
       </table>
     </div>
 
+    <h2>What prepaying does to a {{ loan.label }} loan</h2>
+    <p>Prepayment is the most powerful lever a borrower has, and the earlier it happens the more it is worth. The table below assumes you keep paying the same EMI afterwards — so the tenure shortens rather than the instalment falling, which is what saves the most interest. All figures are for {{ loan.headlineRate }}% over an original {{ loan.headlineYears }}-year term.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>One-off prepayment</th><th>Made in year 3</th><th>Made in year 10</th></tr></thead>
+        <tbody>
+          {% for frac in [0.05, 0.10, 0.20] %}
+          {% set amt = (loan.amount * frac) | round %}
+          {% set e3 = loan.amount | prepayEffect(loan.headlineRate, loan.headlineYears, amt, 3) %}
+          {% set e10 = loan.amount | prepayEffect(loan.headlineRate, loan.headlineYears, amt, 10) %}
+          <tr>
+            <th>{{ amt | compactInr }}</th>
+            <td>saves {{ e3.saved | compactInr }}, loan ends {{ (e3.monthsCut / 12) | fix1 }} yrs sooner</td>
+            <td>saves {{ e10.saved | compactInr }}, loan ends {{ (e10.monthsCut / 12) | fix1 }} yrs sooner</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="chart-note">Assumes the EMI stays unchanged after prepaying, so the tenure shortens.</p>
+    <p>Notice how much the timing matters: the same amount prepaid in year 3 saves far more than it does in year 10, because early in the schedule almost all of each EMI is interest. Under RBI rules, floating-rate home loans taken by individuals carry no prepayment or foreclosure penalty, so there is no charge for doing this.</p>
+
     <h2>What salary do you need?</h2>
     <p>Lenders generally want your total EMIs to stay within 40–50% of net monthly income. For a {{ loan.label }} loan at {{ loan.headlineRate }}% over {{ loan.headlineYears }} years, that points to a take-home income of roughly <strong>{{ loan.incomeNeeded }} a month</strong>, assuming you carry no other significant EMIs. A co-applicant's income can be combined to improve eligibility, which is why joint applications are common.</p>
 

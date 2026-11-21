@@ -86,6 +86,11 @@ description: "Complete year-by-year record of India's consumer price inflation f
     </div>
   </details>
 
+  <p class="result-actions" style="margin:1rem 0;">
+    <a class="btn-ghost" href="/india-inflation-rates.csv" download>⤓ Download the full series (CSV)</a>
+    <span class="chart-note" style="margin-left:0.6rem;">{{ cpi.series.length }} years · year, annual rate, price index, value of ₹100 today</span>
+  </p>
+
   <p class="note">Source: <a href="{{ cpi.sourceUrl }}" rel="nofollow noopener" target="_blank">{{ cpi.source }}</a>, retrieved {{ cpi.retrieved }}, used under <a href="{{ cpi.licenseUrl }}" rel="license nofollow noopener" target="_blank">{{ cpi.license }}</a>. {{ cpi.modification }} Figures are national averages across a broad basket; individual categories such as education, healthcare and property have often risen considerably faster.</p>
 
   <section class="related-section">
@@ -118,6 +123,11 @@ description: "Complete year-by-year record of India's consumer price inflation f
   "creditText": {{ cpi.source | dump | safe }},
   "creator": { "@type": "Organization", "name": "{{ site.name }}" },
   "isBasedOn": "{{ cpi.sourceUrl }}",
+  "distribution": {
+    "@type": "DataDownload",
+    "encodingFormat": "text/csv",
+    "contentUrl": "{{ site.url }}/india-inflation-rates.csv"
+  },
   "dateModified": "{{ updated | isoDate }}",
   "keywords": [
     "India inflation rate",

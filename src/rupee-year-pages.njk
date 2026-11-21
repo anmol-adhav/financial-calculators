@@ -56,6 +56,39 @@ eleventyComputed:
       </table>
     </div>
 
+    <h2>The other direction: today's money in {{ y.year }} terms</h2>
+    <p>The reverse question is just as common — what today's salary or price would have been worth back then. Dividing by the same ratio gives it:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Amount in {{ cpi.latest }}</th><th>Equivalent in {{ y.year }}</th></tr></thead>
+        <tbody>
+          {% for a in [10000, 50000, 100000, 500000, 1000000, 10000000] %}
+          <tr><th>{{ a | inr }}</th><td>{{ (a / mult) | inr }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p>So a salary of {{ 1000000 | inr }} a year today corresponds to roughly {{ (1000000 / mult) | inr }} in {{ y.year }} — which is why comparing old salaries or prices to current ones without adjusting is so misleading.</p>
+
+    <h2>Value at points in between</h2>
+    <p>How {{ 100 | inr }} from {{ y.year }} has eroded over the decades since:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>By this year</th><th>₹100 from {{ y.year }} was worth</th><th>Prices ×</th></tr></thead>
+        <tbody>
+          {% for step in [1980, 1990, 2000, 2010, 2020, cpi.latest] %}
+          {% if step > y.year %}
+          <tr>
+            <th>{{ step }}</th>
+            <td>{{ 100 | cpiWorthInr(y.year, step) }}</td>
+            <td>{{ y.year | cpiRatio(step) | round2 }}×</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
     <h2>What was happening in {{ y.year }}</h2>
     <p>{{ y.note }}</p>
     <p>Inflation during {{ y.year }} itself was <strong>{{ thisYearRate | round1 }}%</strong>. Across the {{ cpi.latest - y.year }} years since, prices have risen {{ mult | round1 }}× in total, which works out to an average of {{ avg | round1 }}% compounded annually. Put the other way round, a rupee from {{ y.year }} retains about {{ (100 / mult) | round1 }}% of its original buying power today.</p>

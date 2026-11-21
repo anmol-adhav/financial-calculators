@@ -58,6 +58,34 @@ module.exports = function (eleventyConfig) {
     emiFor(p, rate, years) * Math.round(years * 12) - p
   );
 
+  // Effect of a one-off prepayment made at the end of `atYear`, keeping the
+  // EMI unchanged so the tenure shortens. Returns interest saved and months cut.
+  const prepayEffect = (principal, rate, years, prepay, atYear) => {
+    const r = rate / 1200, n = Math.round(years * 12);
+    const emi = r === 0 ? principal / n : (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const run = (lumpAt) => {
+      let bal = principal, interest = 0, m = 0;
+      while (bal > 0.01 && m < n * 3) {
+        const i = bal * r;
+        interest += i;
+        bal = bal + i - emi;
+        m++;
+        if (lumpAt && m === lumpAt) bal -= prepay;
+        if (bal < 0) bal = 0;
+      }
+      return { interest, months: m };
+    };
+    const base = run(0);
+    const withPre = run(Math.round(atYear * 12));
+    return {
+      saved: base.interest - withPre.interest,
+      monthsCut: base.months - withPre.months,
+      newYears: withPre.months / 12
+    };
+  };
+  eleventyConfig.addFilter("prepayEffect", prepayEffect);
+  eleventyConfig.addFilter("fix1", (n) => (n == null ? "—" : Number(n).toFixed(1)));
+
   // --- Historical rupee value, from the real World Bank CPI series
   const cpi = require("./src/_data/cpi.js");
   const cpiRatio = (fromYear, toYear) => {

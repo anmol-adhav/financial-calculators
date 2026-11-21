@@ -77,6 +77,39 @@ faqs:
 <script id="cpi-data" type="application/json">{{ cpi.series | dump | safe }}</script>
 
 <article class="article">
+  <h2>What is India's inflation rate right now?</h2>
+  <p>The most recent full year in the World Bank's consumer price series for India is <strong>{{ cpi.latest }}</strong>, when inflation ran at <strong>{{ cpi.byYear[cpi.latest].rate | round1 }}%</strong>. For context, the previous year was {{ cpi.byYear[cpi.latest - 1].rate | round1 }}%, and the average across the whole series since {{ cpi.first }} is {{ cpi.first | cpiCagr | round1 }}% a year.</p>
+  <p>The Reserve Bank of India targets <strong>4% inflation with a 2% band either side</strong>, so 2–6% is the official comfort zone. For long-term planning most advisers use 6%, which is close to India's recent average and errs on the cautious side. Figures here are national averages — see <a href="/historical-inflation-india/">the full year-by-year record</a> for how much that has varied.</p>
+
+  <h2>Not all inflation is the same</h2>
+  <p>The headline rate covers a broad basket, but the things people actually save for often rise much faster. Using 6% for a goal that inflates at 10% will leave you badly short:</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Category</th><th>Rate commonly used for planning</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><th>General spending</th><td>5–6%</td><td>Close to the headline CPI and India's long-run average.</td></tr>
+        <tr><th>Education</th><td>8–10%</td><td>Private college and professional-course fees have historically outpaced the headline rate. See the <a href="/child-education-calculator/">education calculator</a>.</td></tr>
+        <tr><th>Healthcare</th><td>8–12%</td><td>Medical costs rise faster than general prices, which is why retirees need dedicated health cover.</td></tr>
+        <tr><th>Electronics, telecom</th><td>Often negative</td><td>Technology tends to get cheaper in real terms, offsetting part of the basket.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="chart-note">Planning conventions rather than official sub-indices — use them as starting points, not published figures.</p>
+
+  <h2>Quick reference: what ₹1 lakh becomes</h2>
+  <p>The future cost of ₹1,00,000 of today's spending, at the rates and horizons people plan around:</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Years</th>{% for r in [4, 6, 8, 10] %}<th>{{ r }}%</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for y in [5, 10, 15, 20, 25, 30] %}
+        <tr><th>{{ y }} years</th>{% for r in [4, 6, 8, 10] %}<td>{{ (100000 * ((1 + r / 100) ** y)) | inr }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p>Read the 6% column down and the rule of 72 becomes obvious: prices roughly double every twelve years, so a 30-year retirement horizon means planning for costs close to six times today's.</p>
+
   <h2>The two faces of inflation</h2>
   <p>Every inflation question is one of two directions. <strong>Forward:</strong> an expense of ₹1,00,000 today will cost about ₹2,39,656 in 15 years at 6% — relevant when sizing future goals like education, weddings or retirement. <strong>Backward:</strong> ₹1,00,000 you receive 15 years from now will buy only what about ₹41,727 buys today — relevant when judging maturity values of insurance policies, FDs and pension plans. Both numbers come from the same formula, applied in opposite directions.</p>
 
