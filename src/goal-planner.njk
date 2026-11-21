@@ -1,0 +1,146 @@
+---
+layout: layouts/calculator.njk
+permalink: /goal-planner/
+title: "Goal Planner — Short Term & Long Term Investment Calculator (India)"
+h1: "Goal Planner"
+description: "Plan any financial goal — a car, a wedding, a house deposit, retirement. See the inflated cost, the monthly investment needed, and the asset mix that suits your time horizon."
+lede: "Any goal, any timeline. Enter what it costs today and when you need it, and see both the amount to invest each month and where that money should actually sit — because a three-year goal and a twenty-year goal belong in completely different places."
+updated: 2026-11-21
+related: [sip-calculator, child-education-calculator, retirement-calculator]
+faqs:
+  - q: "What is goal-based investing?"
+    a: >-
+      It means tying each investment to a specific purpose, amount and date rather than saving into one undifferentiated pot. The advantage is that the deadline dictates the risk you can take: money needed in two years and money needed in twenty should not sit in the same instrument, even for the same investor.
+  - q: "Where should I invest for a short-term goal?"
+    a: >-
+      For anything under three years, stay in debt — recurring deposits, fixed deposits, liquid funds or short-duration debt funds. Equity can fall 30% in a year and may not recover before your deadline, and there is no way to make that up when the money is already committed. Accepting a 6–7% return is the price of certainty.
+  - q: "What return should I expect for a long-term goal?"
+    a: >-
+      Over horizons beyond seven to ten years, equity funds in India have historically delivered around 11–14% a year, though with wide variation between periods and no guarantee. A 10–12% planning assumption is reasonable for an equity-led portfolio; use 7–8% for debt-heavy mixes, and remember that any figure here is an estimate, not a promise.
+  - q: "Should I adjust my goal amount for inflation?"
+    a: >-
+      Yes, and this calculator does it automatically. A wedding costing ₹15 lakh today will cost roughly ₹26.8 lakh in ten years at 6% inflation. Planning against today's price is the single most common error in goal planning, and it leaves people short by exactly the amount inflation compounds to.
+  - q: "How do I plan for several goals at once?"
+    a: >-
+      Calculate each separately, then add the monthly figures to see the total against your actual surplus. If the total exceeds what you can save, the options are to extend a deadline, reduce a target, or rank goals by importance. Goals with hard dates and no alternative funding — a child's course fees, for instance — generally take priority over those that can be deferred or borrowed for.
+  - q: "Should I keep my emergency fund separate from goals?"
+    a: >-
+      Yes. An emergency fund of six months' expenses in a liquid, instantly accessible place is a prerequisite, not a goal to plan alongside others. Without it, the first unexpected expense forces you to break a goal investment, often at the worst possible time.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('cost', 'What it costs today', '₹', 10000, 100000000, 10000, 1500000, '₹10k', '₹10 Cr') }}
+    {{ m.field('n', 'Years until you need it', 'years', 1, 40, 1, 10, '1 yr', '40 yrs') }}
+    {{ m.field('inf', 'Inflation on this goal', '%', 0, 15, 0.5, 6, '0%', '15%') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 4, 20, 0.5, 12, '4%', '20%') }}
+    {{ m.field('have', 'Already saved', '₹', 0, 100000000, 10000, 0, '₹0', '₹10 Cr') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Monthly investment needed</div><div class="v" id="out-sip">—</div><div class="sub" id="out-sip-sub"></div></div>
+      <div class="stat"><div class="k">Goal will cost</div><div class="v" id="out-fc">—</div><div class="sub">inflated to your date</div></div>
+      <div class="stat"><div class="k">You invest in total</div><div class="v" id="out-inv">—</div></div>
+      <div class="stat"><div class="k">Growth contributes</div><div class="v pos" id="out-gain">—</div></div>
+    </div>
+    <div class="stat" id="mix-box" style="border-left:4px solid var(--accent);">
+      <div class="k" id="mix-label">Suggested mix</div>
+      <div class="v" id="mix-title" style="font-size:1.05rem;">—</div>
+      <div class="sub" id="mix-text"></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-goal"></canvas></div>
+    <p class="chart-note">Your fund building towards the inflated cost of the goal.</p>
+  </div>
+</div>
+
+<article class="article">
+  <h2>Short term, medium term, long term</h2>
+  <p>The single most useful question in goal planning is not which fund to buy — it is how long you have. The horizon decides how much risk the money can carry, because risk is only survivable if there is time to recover from it. Equity markets fall sharply every few years; whether that is an inconvenience or a disaster depends entirely on whether your deadline arrives before the recovery does.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Horizon</th><th>Typical mix</th><th>Where it usually sits</th><th>Planning return</th></tr></thead>
+      <tbody>
+        <tr><th>Under 3 years</th><td>100% debt</td><td>RD, FD, liquid or short-duration debt funds</td><td>6–7%</td></tr>
+        <tr><th>3–5 years</th><td>~30% equity</td><td>Conservative hybrid or balanced-advantage funds</td><td>8–9%</td></tr>
+        <tr><th>5–7 years</th><td>~50–60% equity</td><td>Balanced or aggressive hybrid funds</td><td>9–11%</td></tr>
+        <tr><th>7–10 years</th><td>~70% equity</td><td>Index and flexi-cap funds, with a debt component</td><td>11%</td></tr>
+        <tr><th>Over 10 years</th><td>80–100% equity</td><td>Diversified equity: index, flexi-cap, mid-cap</td><td>11–12%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="chart-note">Indicative allocations for a typical investor. Your own risk tolerance and other assets should adjust these — they are a starting point, not advice.</p>
+
+  <h2>How this is calculated</h2>
+  <p>Two steps. First the goal is inflated to the year you need it, because today's price is not what you will pay:</p>
+  <div class="formula">Future cost = today's cost × (1 + inflation)<sup>years</sup></div>
+  <p>Then anything already saved is grown at your expected return, subtracted, and the shortfall is converted into a monthly instalment:</p>
+  <div class="formula">Monthly investment = shortfall ÷ [ ((1 + i)<sup>n</sup> − 1) ÷ i × (1 + i) ]</div>
+
+  <h2>Worked example</h2>
+  <p>A wedding you would budget ₹15 lakh for today, ten years away, with 6% inflation. The real target is about <strong>₹26.86 lakh</strong>, not ₹15 lakh. At a 12% expected return that needs roughly <strong>₹11,560 a month</strong> — of which about ₹13.9 lakh is your own contribution and the rest is growth.</p>
+  <p>Plan against the uninflated ₹15 lakh instead and you would invest about ₹6,460 a month, arriving with ₹15 lakh against a ₹26.86 lakh bill — short by more than ₹11 lakh. That gap is precisely what inflation compounds to over ten years, and it is the most common failure in goal planning.</p>
+
+  <h2>Making the plan hold</h2>
+  <ul>
+    <li><strong>Keep goals separate.</strong> One SIP per goal makes it obvious whether each is on track, and stops a near-term need quietly consuming a long-term fund.</li>
+    <li><strong>Fund the emergency buffer first.</strong> Six months of expenses in a liquid account is what prevents every surprise from derailing a goal.</li>
+    <li><strong>Raise the amount as income grows.</strong> A plan set once and never revisited falls behind. Stepping contributions up annually is the easiest correction available — see the <a href="/step-up-sip-calculator/">step-up SIP calculator</a>.</li>
+    <li><strong>De-risk as the date nears.</strong> Shift gradually from equity to debt over the final three years rather than hoping the market cooperates on the week you need the money.</li>
+    <li><strong>Review once a year.</strong> Compare the fund value against the plan and correct early, while corrections are still small.</li>
+  </ul>
+
+  <h2>Specific goals</h2>
+  <p>Some goals have their own dynamics and their own calculators here: <a href="/child-education-calculator/">children's education</a> uses a higher inflation rate than ordinary spending, <a href="/retirement-calculator/">retirement</a> has to fund decades of withdrawals rather than a single purchase, and <a href="/emi-calculator/">a home</a> usually involves a loan alongside the deposit you save.</p>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var MIXES = [
+    { max: 3,   title: 'Short term — stay in debt',        text: 'Under 3 years: RDs, FDs, liquid or short-duration debt funds. Equity can fall sharply and may not recover before your deadline. Expect roughly 6–7%.' },
+    { max: 5,   title: 'Short-to-medium — mostly debt',    text: '3–5 years: around 30% equity via a conservative hybrid or balanced-advantage fund, the rest in debt. Expect roughly 8–9%.' },
+    { max: 7,   title: 'Medium term — balanced',           text: '5–7 years: roughly half equity, half debt, typically through a balanced or aggressive hybrid fund. Expect roughly 9–11%.' },
+    { max: 10,  title: 'Long term — equity-led',           text: '7–10 years: about 70% equity in index and flexi-cap funds, with a debt component for stability. Expect roughly 11%.' },
+    { max: 999, title: 'Very long term — equity',          text: 'Over 10 years: 80–100% diversified equity. There is time to absorb several market cycles, and inflation is the bigger risk than volatility. Expect roughly 11–12%.' }
+  ];
+
+  function recalc() {
+    var cost = CM.val('cost'), n = Math.round(CM.val('n'));
+    var inf = CM.val('inf') / 100, r = CM.val('r') / 100, have = CM.val('have');
+    if (cost <= 0 || n <= 0) return;
+
+    var fc = cost * Math.pow(1 + inf, n);
+    var haveFv = have * Math.pow(1 + r, n);
+    var gap = Math.max(0, fc - haveFv);
+    var i = r / 12, months = n * 12;
+    var sip = i === 0 ? gap / months : gap / (((Math.pow(1 + i, months) - 1) / i) * (1 + i));
+    var invested = sip * months + have;
+
+    CM.set('out-sip', gap <= 0 ? 'Already funded ✓' : CM.inr(sip));
+    CM.set('out-sip-sub', gap <= 0 ? 'existing savings cover it' : 'for ' + n + ' years at ' + CM.num(CM.val('r'), 1) + '%');
+    CM.set('out-fc', CM.inr(fc));
+    CM.set('out-inv', CM.inr(invested));
+    CM.set('out-gain', CM.inr(Math.max(0, fc - invested)));
+
+    var mix = MIXES.find(function (x) { return n <= x.max; });
+    CM.set('mix-label', 'Suggested mix for ' + n + ' ' + (n === 1 ? 'year' : 'years'));
+    CM.set('mix-title', mix.title);
+    CM.set('mix-text', mix.text);
+
+    var labels = [], fund = [], target = [], bal = have;
+    for (var y = 0; y <= n; y++) {
+      labels.push('Y' + y);
+      fund.push(bal);
+      target.push(cost * Math.pow(1 + inf, y));
+      if (y < n) bal = bal * (1 + r) + sip * 12 * (1 + r);
+    }
+    CM.lineChart('chart-goal', labels, [
+      { label: 'Your fund', data: fund, role: '--s1', fill: true },
+      { label: 'Goal cost', data: target, role: '--s3' }
+    ]);
+  }
+  CM.bind(['cost', 'n', 'inf', 'r', 'have'], recalc);
+});
+</script>

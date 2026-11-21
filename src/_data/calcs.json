@@ -77,10 +77,31 @@
     "short": "How long your corpus lasts with a systematic withdrawal plan."
   },
   {
+    "slug": "retirement-calculator",
+    "name": "Retirement Calculator",
+    "icon": "🌴",
+    "cat": "Retirement",
+    "short": "The corpus that funds your retirement, and the monthly saving that builds it."
+  },
+  {
     "slug": "inflation-calculator",
     "name": "Inflation Calculator",
     "icon": "📉",
     "cat": "Planning",
     "short": "What today's money will be worth — and cost — in the future."
+  },
+  {
+    "slug": "goal-planner",
+    "name": "Goal Planner",
+    "icon": "🎯",
+    "cat": "Planning",
+    "short": "Any goal, any timeline — inflated cost, monthly investment and the right asset mix."
+  },
+  {
+    "slug": "child-education-calculator",
+    "name": "Child Education Calculator",
+    "icon": "🎓",
+    "cat": "Planning",
+    "short": "What your child's course will cost, and the SIP that gets you there."
   }
 ]

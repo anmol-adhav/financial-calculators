@@ -1,0 +1,148 @@
+---
+layout: layouts/calculator.njk
+permalink: /child-education-calculator/
+title: "Child Education Calculator — Plan Your Child's College Fund (India)"
+h1: "Child Education Calculator"
+description: "Find what your child's degree will cost by the time they start, and the monthly SIP needed to fund it — with education inflation applied to Indian course costs."
+lede: "Education inflation in India runs well ahead of ordinary inflation. See what a course costing today's fees will actually cost when your child reaches it, and what you need to invest each month to be ready."
+updated: 2026-11-21
+related: [sip-calculator, ppf-calculator, inflation-calculator]
+faqs:
+  - q: "How much will my child's education cost in 15 years?"
+    a: >-
+      Multiply today's fees by education inflation. A course costing ₹20 lakh today, inflating at 10% a year, costs roughly ₹83.5 lakh in 15 years — more than four times the present figure. At 8% it would be about ₹63.4 lakh. This is why planning from today's sticker price badly understates what you need.
+  - q: "What education inflation rate should I use for India?"
+    a: >-
+      Higher than headline inflation. General CPI inflation in India has averaged around 5–6% in recent years, but tuition fees at private colleges have typically risen faster, and 8–10% is the range most planners use. Overseas education carries the additional risk of rupee depreciation on top of local fee increases.
+  - q: "Where should I invest for a child's education?"
+    a: >-
+      It depends almost entirely on how far away the goal is. More than seven years out, diversified equity funds are the usual choice because they have the time to recover from a bad stretch. Inside three years, the money belongs in debt funds, RDs or FDs — a 30% fall in the final year cannot be made up. Many parents shift gradually from equity to debt over the last three to four years.
+  - q: "Is Sukanya Samriddhi Yojana good for a daughter's education?"
+    a: >-
+      It is a sound, government-backed option with tax-free returns, and the rate has historically run above PPF. The trade-offs are that it is restricted to a daughter under 10, locks money until she is 21 with only partial withdrawal allowed at 18, and pays a fixed rate that may trail equity over fifteen-plus years. Many families use it alongside equity SIPs rather than instead of them.
+  - q: "Should I take an education loan instead of saving?"
+    a: >-
+      They are complements, not alternatives. Education loans in India carry interest of roughly 9–12%, and Section 80E allows a deduction on the interest paid for up to eight years under the old regime. Saving early reduces how much you need to borrow, which is what makes the loan manageable. Starting a SIP fifteen years ahead is far cheaper than servicing a loan for eight years afterwards.
+  - q: "How much should I invest every month for my child's education?"
+    a: >-
+      For a goal of ₹83.5 lakh in 15 years at a 12% return, the SIP works out to about ₹16,600 a month. The same target over 10 years needs roughly ₹35,900 — more than double, for only five fewer years. Every year of delay raises the figure sharply, which is the single strongest argument for starting while the child is young.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('cage', "Child's age now", 'years', 0, 20, 1, 3, '0', '20') }}
+    {{ m.field('sage', 'Age when course starts', 'years', 3, 30, 1, 18, '3', '30') }}
+    {{ m.field('cost', "Course cost today", '₹', 100000, 50000000, 50000, 2000000, '₹1L', '₹5 Cr') }}
+    {{ m.field('einf', 'Education inflation', '%', 4, 15, 0.5, 10, '4%', '15%') }}
+    {{ m.field('r', 'Expected return (p.a.)', '%', 4, 20, 0.5, 12, '4%', '20%') }}
+    {{ m.field('have', 'Already saved for this', '₹', 0, 50000000, 25000, 0, '₹0', '₹5 Cr') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Course will cost</div><div class="v" id="out-fc">—</div><div class="sub" id="out-fc-sub"></div></div>
+      <div class="stat"><div class="k">Years to prepare</div><div class="v" id="out-yrs">—</div></div>
+      <div class="stat"><div class="k">Cost multiplies by</div><div class="v" id="out-mult">—</div></div>
+      <div class="stat hero"><div class="k">Monthly SIP needed</div><div class="v" id="out-sip">—</div><div class="sub" id="out-sip-sub"></div></div>
+    </div>
+    <div class="chart-box"><canvas id="chart-edu"></canvas></div>
+    <p class="chart-note">Rising course cost against the fund you are building for it.</p>
+  </div>
+</div>
+
+<details class="sched">
+  <summary>Year-by-year plan</summary>
+  <div id="sched-out"></div>
+</details>
+
+<article class="article">
+  <h2>Why education needs its own calculator</h2>
+  <p>Most goals can be planned with general inflation. Education cannot. College and professional-course fees in India have historically risen faster than the consumer price index, and the gap compounds: at 10% a year, fees double roughly every seven years, so a child born today may face four times the present cost by the time they reach university. Parents who plan from today's fee schedule routinely find themselves short by a factor of two or more.</p>
+
+  <h2>How it is calculated</h2>
+  <div class="formula">Future cost = today's cost × (1 + education inflation)<sup>years until the course starts</sup></div>
+  <p>Anything you have already set aside is grown at your expected return and subtracted, and the remaining shortfall is converted into the monthly SIP that closes it in the time available:</p>
+  <div class="formula">SIP = shortfall ÷ [ ((1 + i)<sup>n</sup> − 1) ÷ i × (1 + i) ]</div>
+
+  <h2>Typical course costs in India</h2>
+  <p>Indicative present-day ranges for the full course, to use as a starting point. Fees vary enormously between government and private institutions, so replace these with the actual figures for the colleges you have in mind:</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Course</th><th>Typical total cost today</th><th>At 10% inflation, in 15 years</th></tr></thead>
+      <tbody>
+        <tr><th>Engineering (private)</th><td>₹8–20 lakh</td><td>₹33–84 lakh</td></tr>
+        <tr><th>Medicine (private MBBS)</th><td>₹50 lakh–1 crore</td><td>₹2.1–4.2 crore</td></tr>
+        <tr><th>MBA (top-tier Indian)</th><td>₹20–30 lakh</td><td>₹84 lakh–1.25 crore</td></tr>
+        <tr><th>Undergraduate abroad</th><td>₹60 lakh–1.5 crore</td><td>₹2.5–6.3 crore</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="chart-note">Indicative ranges only, covering tuition plus living costs where applicable. Overseas figures carry additional currency risk.</p>
+
+  <h2>Worked example</h2>
+  <p>Your child is 3, and you expect them to start a course at 18 — fifteen years away. A degree costing ₹20 lakh today, with education inflation at 10%, will cost about <strong>₹83.5 lakh</strong> when they get there. With nothing saved yet and a 12% expected return, you would need a SIP of roughly <strong>₹16,600 a month</strong>.</p>
+  <p>Wait until the child is 8 and you have ten years instead of fifteen. The course then costs about ₹51.9 lakh — less, because there is less time for fees to inflate — yet the SIP required jumps to roughly ₹22,300 a month, because your money has five fewer years to compound. Delay is expensive in both directions.</p>
+
+  <h2>Matching the investment to the timeline</h2>
+  <p>The right place for this money changes as the goal approaches, and getting that wrong is the most common way education plans fail:</p>
+  <ul>
+    <li><strong>More than 10 years away.</strong> Diversified equity funds, with the bulk in index or flexi-cap funds. There is ample time to absorb a poor stretch.</li>
+    <li><strong>5 to 10 years.</strong> Still equity-led, but start building a debt component. A hybrid or balanced-advantage fund suits parents who would rather not manage the shift themselves.</li>
+    <li><strong>3 to 5 years.</strong> Move decisively toward debt. Protecting what you have accumulated now matters more than growing it further.</li>
+    <li><strong>Under 3 years.</strong> Debt funds, RDs or FDs only. A market fall in the final year cannot be recovered before the fees are due.</li>
+    <li><strong>Shift gradually, not in one move.</strong> Transferring a fixed amount each month over the last three years avoids betting the whole outcome on the level of the market on a single day.</li>
+  </ul>
+  <p>For a broader goal with any timeline, the <a href="/goal-planner/">goal planner</a> applies the same logic and suggests an asset mix for the horizon you enter.</p>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var cage = Math.round(CM.val('cage'));
+    var sage = Math.round(CM.val('sage'));
+    var cost = CM.val('cost');
+    var einf = CM.val('einf') / 100;
+    var r = CM.val('r') / 100;
+    var have = CM.val('have');
+
+    var n = sage - cage;
+    if (n <= 0) {
+      CM.set('out-fc', '—');
+      CM.set('out-fc-sub', 'Course start age must be above the child’s current age');
+      ['out-yrs', 'out-mult', 'out-sip'].forEach(function (id) { CM.set(id, '—'); });
+      return;
+    }
+
+    var fc = cost * Math.pow(1 + einf, n);
+    var haveFv = have * Math.pow(1 + r, n);
+    var gap = Math.max(0, fc - haveFv);
+    var i = r / 12, months = n * 12;
+    var sip = i === 0 ? gap / months : gap / (((Math.pow(1 + i, months) - 1) / i) * (1 + i));
+
+    CM.set('out-fc', CM.inr(fc));
+    var w = CM.words(fc);
+    CM.set('out-fc-sub', (w ? 'about ' + w + ' · ' : '') + 'when the child turns ' + sage);
+    CM.set('out-yrs', n + (n === 1 ? ' year' : ' years'));
+    CM.set('out-mult', (Math.round((fc / cost) * 10) / 10) + '×');
+    CM.set('out-sip', gap <= 0 ? 'Already funded ✓' : CM.inr(sip));
+    CM.set('out-sip-sub', gap <= 0 ? 'existing savings cover the cost' : 'for ' + n + ' years at ' + CM.num(CM.val('r'), 1) + '%');
+
+    var labels = [], costSeries = [], fundSeries = [], rows = [];
+    var bal = have;
+    for (var y = 0; y <= n; y++) {
+      labels.push('Age ' + (cage + y));
+      costSeries.push(cost * Math.pow(1 + einf, y));
+      fundSeries.push(bal);
+      rows.push([cage + y, CM.inr(cost * Math.pow(1 + einf, y)), CM.inr(bal)]);
+      if (y < n) bal = bal * (1 + r) + sip * 12 * (1 + r);
+    }
+    CM.lineChart('chart-edu', labels, [
+      { label: 'Course cost', data: costSeries, role: '--s3' },
+      { label: 'Your fund', data: fundSeries, role: '--s1', fill: true }
+    ]);
+    CM.table('sched-out', ["Child's age", 'Course cost then', 'Fund value'], rows);
+  }
+  CM.bind(['cage', 'sage', 'cost', 'einf', 'r', 'have'], recalc);
+});
+</script>

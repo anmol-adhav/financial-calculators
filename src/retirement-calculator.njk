@@ -1,0 +1,162 @@
+---
+layout: layouts/calculator.njk
+permalink: /retirement-calculator/
+title: "Retirement Calculator India — Corpus Needed & Monthly Savings"
+h1: "Retirement Calculator"
+description: "Work out the retirement corpus you need in India, how long it will last, and the monthly SIP required to build it — adjusted for inflation and your existing savings."
+lede: "Find the corpus that actually funds your retirement — built from your real expenses, your existing savings, and how long the money has to last after you stop working."
+updated: 2026-11-21
+related: [fire-calculator, swp-calculator, ppf-calculator]
+faqs:
+  - q: "How much corpus do I need to retire in India?"
+    a: >-
+      It depends on your expenses, not on a round number. A household spending ₹50,000 a month today and retiring in 30 years needs roughly ₹7.7 crore at 6% inflation to fund a 25-year retirement — because those expenses will have grown to about ₹2.87 lakh a month by then. The honest answer always starts from your own spending, which is what this calculator does.
+  - q: "What is the difference between this and the FIRE calculator?"
+    a: >-
+      The FIRE calculator sizes a corpus meant to last indefinitely using a safe withdrawal rate, which suits early retirement at 40 or 45. This calculator models a conventional retirement with a defined end: it draws the corpus down over your remaining years, so it can assume a shorter horizon and typically produces a smaller target.
+  - q: "What return should I assume after retirement?"
+    a: >-
+      Lower than before it. Retirees usually shift toward debt, so 7–8% is a common post-retirement assumption against 11–12% during accumulation. What matters is the gap between that return and inflation: if you earn 7% while inflation runs 6%, your real return is only about 0.9%, and the corpus has to be large enough to cover nearly the whole withdrawal itself.
+  - q: "Does EPF and NPS count towards this?"
+    a: >-
+      Yes. Enter your current EPF, NPS, PPF and mutual fund balances together as existing savings — the calculator grows them at your expected return and subtracts the result from the target, so the monthly SIP it shows is only the additional amount you need. Remember that NPS requires at least 40% of the maturity corpus to buy an annuity.
+  - q: "What if I retire earlier than 60?"
+    a: >-
+      The corpus requirement rises sharply from both directions: you have fewer years to accumulate and more years to fund. Retiring at 50 instead of 60 roughly triples the monthly saving required. If you are planning that, use the FIRE calculator as well, since a 35-year retirement is better sized with a withdrawal rate than a fixed end date.
+  - q: "Should I include my house in the corpus?"
+    a: >-
+      Only if you genuinely intend to sell or rent it. A self-occupied home produces no income and still costs maintenance, insurance and property tax, so most planners exclude it from the retirement corpus and count only financial assets. Rental income, if any, can be treated as a reduction in your expenses instead.
+---
+{% import "macros.njk" as m %}
+
+<div class="calc">
+  <div class="inputs">
+    {{ m.field('age', 'Your age now', 'years', 18, 65, 1, 30, '18', '65') }}
+    {{ m.field('rage', 'Retirement age', 'years', 40, 75, 1, 60, '40', '75') }}
+    {{ m.field('life', 'Plan until age', 'years', 60, 100, 1, 85, '60', '100') }}
+    {{ m.field('exp', 'Monthly expenses now', '₹', 5000, 1000000, 1000, 50000, '₹5k', '₹10L') }}
+    {{ m.field('inf', 'Expected inflation', '%', 2, 12, 0.5, 6, '2%', '12%') }}
+    {{ m.field('rpre', 'Return before retirement', '%', 4, 20, 0.5, 12, '4%', '20%') }}
+    {{ m.field('rpost', 'Return after retirement', '%', 3, 15, 0.5, 7, '3%', '15%') }}
+    {{ m.field('have', 'Savings you already have', '₹', 0, 200000000, 50000, 500000, '₹0', '₹20 Cr') }}
+    <div class="result-actions"><button class="btn-ghost" data-copylink>Copy link to this calculation</button></div>
+  </div>
+  <div class="results">
+    <div class="stat-row">
+      <div class="stat hero"><div class="k">Corpus needed at retirement</div><div class="v" id="out-corpus">—</div><div class="sub" id="out-corpus-sub"></div></div>
+      <div class="stat"><div class="k">Monthly expenses then</div><div class="v" id="out-exp">—</div><div class="sub" id="out-exp-sub"></div></div>
+      <div class="stat"><div class="k">Existing savings grow to</div><div class="v" id="out-have">—</div><div class="sub">by retirement</div></div>
+      <div class="stat"><div class="k">Still to be funded</div><div class="v" id="out-gap">—</div><div class="sub">after existing savings</div></div>
+      <div class="stat hero"><div class="k">Monthly SIP needed</div><div class="v" id="out-sip">—</div><div class="sub" id="out-sip-sub"></div></div>
+    </div>
+    <div class="chart-box" style="height:260px"><canvas id="chart-life"></canvas></div>
+    <p class="chart-note">Corpus building up to retirement, then drawn down through it.</p>
+  </div>
+</div>
+
+<article class="article">
+  <h2>How the corpus is calculated</h2>
+  <p>Retirement planning is two problems joined at one date. Before that date you are accumulating; after it you are withdrawing from a pot that still earns a return while inflation keeps raising what you withdraw. This calculator solves both:</p>
+  <ol>
+    <li><strong>Inflate your expenses</strong> to your retirement year: current expenses × (1 + inflation)<sup>years to retirement</sup>.</li>
+    <li><strong>Size the corpus</strong> as the present value of a rising stream of withdrawals lasting your full retirement, discounted at your post-retirement return.</li>
+    <li><strong>Grow what you already have</strong> at your pre-retirement return and subtract it.</li>
+    <li><strong>Convert the shortfall</strong> into the monthly SIP that closes it by your retirement date.</li>
+  </ol>
+  <p>Step two uses the <strong>real return</strong> — the part of your post-retirement return that beats inflation:</p>
+  <div class="formula">real return = (1 + post-retirement return) ÷ (1 + inflation) − 1</div>
+  <p>This is the number that decides everything after you stop working. At a 7% return and 6% inflation the real return is only about 0.94%, so a 25-year retirement needs a corpus of about 22 times the first year's expenses. Push inflation to 7% against the same 7% return and the real return falls to zero — the corpus then has to be a full 25 times, because the portfolio contributes nothing beyond keeping pace.</p>
+
+  <h2>Worked example</h2>
+  <p>You are 30, plan to retire at 60 and to fund life until 85. You spend ₹50,000 a month today, assume 6% inflation, 12% returns while working and 7% after, and already hold ₹5,00,000.</p>
+  <ul>
+    <li>Your ₹50,000 of monthly spending becomes about <strong>₹2.87 lakh a month</strong> by the time you are 60.</li>
+    <li>Funding that for 25 years needs a corpus of roughly <strong>₹7.7 crore</strong>.</li>
+    <li>Your existing ₹5 lakh grows to about ₹1.5 crore over 30 years at 12%, leaving about ₹6.2 crore to find.</li>
+    <li>That shortfall needs a SIP of roughly <strong>₹17,600 a month</strong>, starting now.</li>
+  </ul>
+  <p>The striking part is how much the ₹5 lakh already invested does over thirty years — it alone covers nearly a fifth of the target. Start the same plan at 40 instead of 30, or retire at 50 rather than 60, and the required SIP multiplies several times over.</p>
+
+  <h2>Getting the inputs right</h2>
+  <ul>
+    <li><strong>Use real expenses, not take-home pay.</strong> Include rent or maintenance, insurance, travel and the irregular costs that never appear in a monthly budget. Exclude things that will have stopped by retirement — EMIs that will be repaid, children's education, and your own retirement saving.</li>
+    <li><strong>Plan to a realistic age.</strong> Indian life expectancy averages are not the right input; you are planning for the chance of living longer than average. Planning to 85 or 90 is prudent, and running out at 82 is a far worse error than leaving money behind.</li>
+    <li><strong>Healthcare deserves its own provision.</strong> Medical inflation runs well above general inflation, and a retiree without strong health cover can lose years of corpus to a single episode. Treat comprehensive health insurance as a prerequisite, not a line item.</li>
+    <li><strong>Do not assume equity returns through retirement.</strong> A retiree drawing an income cannot ride out a long drawdown, which is why the post-retirement return defaults to 7% here rather than 12%.</li>
+    <li><strong>Revisit every year.</strong> Compare actual inflation and portfolio value against the plan. Corrections made annually are small; corrections made after a decade rarely are.</li>
+  </ul>
+
+  <h2>After you retire</h2>
+  <p>Building the corpus is only half the job — drawing it down without exhausting it is the other half. A systematic withdrawal plan is the usual mechanism in India, and the <a href="/swp-calculator/">SWP calculator</a> shows how long a given corpus survives at a chosen monthly withdrawal. If you are aiming to stop work well before 60, the <a href="/fire-calculator/">FIRE calculator</a> sizes an open-ended corpus instead of one with an end date.</p>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  function recalc() {
+    var age = Math.round(CM.val('age'));
+    var rage = Math.round(CM.val('rage'));
+    var life = Math.round(CM.val('life'));
+    var exp = CM.val('exp');
+    var inf = CM.val('inf') / 100;
+    var rpre = CM.val('rpre') / 100;
+    var rpost = CM.val('rpost') / 100;
+    var have = CM.val('have');
+
+    var n = rage - age;          // years accumulating
+    var m = life - rage;         // years in retirement
+    if (n <= 0 || m <= 0) {
+      CM.set('out-corpus', '—');
+      CM.set('out-corpus-sub', n <= 0 ? 'Retirement age must be above your current age' : 'Plan-until age must be above retirement age');
+      ['out-exp', 'out-have', 'out-gap', 'out-sip'].forEach(function (id) { CM.set(id, '—'); });
+      return;
+    }
+
+    // expenses at retirement
+    var annualNow = exp * 12;
+    var annualAtRet = annualNow * Math.pow(1 + inf, n);
+
+    // corpus = PV of an inflation-rising withdrawal stream, discounted at post-retirement return
+    var rr = (1 + rpost) / (1 + inf) - 1;   // real return
+    var corpus;
+    if (Math.abs(rr) < 1e-9) {
+      corpus = annualAtRet * m;
+    } else {
+      corpus = annualAtRet * (1 - Math.pow(1 + rr, -m)) / rr * (1 + rr); // withdrawals at start of year
+    }
+
+    var haveFv = have * Math.pow(1 + rpre, n);
+    var gap = Math.max(0, corpus - haveFv);
+
+    var i = rpre / 12, months = n * 12;
+    var sip = i === 0 ? gap / months : gap / (((Math.pow(1 + i, months) - 1) / i) * (1 + i));
+
+    CM.set('out-corpus', CM.inr(corpus));
+    var w = CM.words(corpus);
+    CM.set('out-corpus-sub', (w ? 'about ' + w + ' · ' : '') + 'funds ' + m + ' years');
+    CM.set('out-exp', CM.inr(annualAtRet / 12));
+    CM.set('out-exp-sub', 'at age ' + rage + ', today ' + CM.inr(exp));
+    CM.set('out-have', CM.inr(haveFv));
+    CM.set('out-gap', CM.inr(gap));
+    CM.set('out-sip', gap <= 0 ? 'On track ✓' : CM.inr(sip));
+    CM.set('out-sip-sub', gap <= 0 ? 'existing savings already cover it' : 'for ' + n + ' years, at ' + CM.num(CM.val('rpre'), 1) + '%');
+
+    // two-phase chart: accumulate to retirement, then draw down
+    var labels = [], data = [];
+    var bal = have;
+    for (var y = 0; y <= n; y++) {
+      labels.push('Age ' + (age + y));
+      data.push(bal);
+      if (y < n) bal = bal * (1 + rpre) + sip * 12 * (1 + rpre);
+    }
+    var pot = corpus, wd = annualAtRet;
+    for (var k = 1; k <= m; k++) {
+      pot = (pot - wd) * (1 + rpost);
+      wd = wd * (1 + inf);
+      labels.push('Age ' + (rage + k));
+      data.push(Math.max(0, pot));
+    }
+    CM.lineChart('chart-life', labels, [{ label: 'Corpus', data: data, role: '--s1', fill: true }]);
+  }
+  CM.bind(['age', 'rage', 'life', 'exp', 'inf', 'rpre', 'rpost', 'have'], recalc);
+});
+</script>
